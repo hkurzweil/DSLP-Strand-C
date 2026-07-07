@@ -1,29 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Strand C Competency Sorter — DSLP Revision</title>
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body, #root { height: 100%; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: #F4F6F8; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #f1f1f1; }
-    ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:system-ui,-apple-system,sans-serif;background:#F4F6F8}
+    #app{display:flex;flex-direction:column;height:100vh}
+    #header{background:#1B2A4A;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+    #header h1{font-size:17px;font-weight:700;letter-spacing:-.3px}
+    #header p{font-size:11px;color:#8EADD4;margin-top:2px}
+    #progress{background:#253659;border-radius:7px;padding:5px 12px;font-size:13px;white-space:nowrap}
+    #progress span{color:#8EADD4}
+    #export-btn{background:#028090;border:none;color:#fff;border-radius:7px;padding:7px 14px;font-size:13px;cursor:pointer;font-weight:600}
+    #body{display:flex;flex:1;overflow:hidden}
+    #queue-panel{width:330px;min-width:260px;background:#fff;border-right:1px solid #E2E8F0;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+    #queue-header{padding:12px 14px;border-bottom:1px solid #E2E8F0}
+    #queue-header h2{font-size:13px;font-weight:700;color:#1B2A4A;margin-bottom:8px}
+    #search{width:100%;border:1px solid #D1D5DB;border-radius:6px;padding:6px 9px;font-size:12px;margin-bottom:7px}
+    .filters{display:flex;gap:5px}
+    .filters select{flex:1;border:1px solid #D1D5DB;border-radius:6px;padding:4px 5px;font-size:11px}
+    #queue-list{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:5px}
+    #drop-panel{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+    .substrand-block{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+    .substrand-header{padding:9px 14px;color:#fff;font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+    .zones-row{display:grid;gap:0}
+    .zone{padding:10px 12px;min-height:100px;transition:background .15s;position:relative}
+    .zone.drag-over{outline:2px dashed #028090;outline-offset:-2px}
+    .zone-label{font-size:11px;font-weight:700;margin-bottom:4px}
+    .zone-desc{font-size:10px;color:#888;font-style:italic;margin-bottom:6px}
+    .zone-empty{color:#CBD5E1;font-size:11px;text-align:center;padding-top:10px}
+    .zone-items{display:flex;flex-direction:column;gap:5px}
+    .card{background:#FAFAFA;border:1px solid #E5E7EB;border-radius:7px;padding:8px 10px;cursor:grab;user-select:none;font-size:11px;line-height:1.45}
+    .card:hover{box-shadow:0 3px 10px rgba(0,0,0,.1)}
+    .card.dragging{opacity:.5;cursor:grabbing}
+    .card-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;align-items:center}
+    .badge{border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700;color:#fff}
+    .card-concept{color:#888;font-size:9px;font-style:italic}
+    .card-text{color:#1E293B;margin-top:2px}
+    .card-return{margin-top:5px;font-size:10px;background:none;border:1px solid #ccc;border-radius:4px;padding:2px 7px;cursor:pointer;color:#666}
+    .other-block{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+    .other-header{background:#64748B;padding:9px 14px;color:#fff;font-weight:700;font-size:13px}
+    .other-zones{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+    .note{background:#FEF9EC;border:1px solid #F0D060;border-radius:8px;padding:10px 14px;font-size:11px;color:#7A5800}
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
   </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel" data-presets="react">
-    const { useState } = React;
-
-
-// ── DATA ──────────────────────────────────────────────────────────────────────
-
+<div id="app">
+  <div id="header">
+    <div>
+      <h1>Strand C Restructuring — Competency Sorter</h1>
+      <p>Drag cards from the queue into the new Strand C structure (or other strands). Export CSV when done.</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div id="progress"><span>Placed: </span><b id="placed-count">0</b><span>/</span><b id="total-count">0</b><span> </span><b id="pct">0%</b></div>
+      <button id="export-btn">&#8595; Export CSV</button>
+    </div>
+  </div>
+  <div id="body">
+    <div id="queue-panel">
+      <div id="queue-header">
+        <h2>Competency Queue <span id="remaining" style="font-weight:400;color:#888;font-size:11px"></span></h2>
+        <input id="search" placeholder="Search competencies..."/>
+        <div class="filters">
+          <select id="filter-grade">
+            <option value="">All Grades</option>
+            <option>K-2</option><option>3-5</option><option>6-8</option><option>9-10</option><option>11-12</option>
+          </select>
+          <select id="filter-source">
+            <option value="">All Sources</option>
+            <option value="V1">V1 Summer 2025 (Strand C)</option>
+            <option value="V1-D">V1 Summer 2025 (Strand D)</option>
+            <option value="A+H">Andee+Hollylynne</option>
+            <option value="K+T">Kate+Thema</option>
+          </select>
+        </div>
+      </div>
+      <div id="queue-list"></div>
+    </div>
+    <div id="drop-panel">
+      <div id="strand-c-zones"></div>
+      <div class="other-block">
+        <div class="other-header">Doesn't belong in Strand C &#8594; Route elsewhere</div>
+        <div class="other-zones" id="other-zones"></div>
+      </div>
+      <div class="note"><strong>Note on C3:</strong> Unlike C1 and C2, C3 (Interpreting Variability) is <em>not</em> split into single/multi variable — the judgment about whether variability is meaningful is the same cognitive move regardless of variable count.</div>
+    </div>
+  </div>
+</div>
+<script>
 const STRAND_C_TARGET = {
   id: "strand_c",
   label: "Strand C",
@@ -59,7 +127,6 @@ const STRAND_C_TARGET = {
     },
   ]
 };
-
 const OTHER_BUCKETS = [
   { id: "strand_a", label: "Strand A", color: "#666", lightColor: "#F5F5F5", desc: "Dispositions, ethics, data types, investigative process" },
   { id: "strand_b", label: "Strand B", color: "#666", lightColor: "#F5F5F5", desc: "Collection, curation, data cleaning" },
@@ -67,12 +134,6 @@ const OTHER_BUCKETS = [
   { id: "strand_e", label: "Strand E", color: "#666", lightColor: "#F5F5F5", desc: "Visualization communication, data stories" },
   { id: "cut", label: "Cut / Redundant", color: "#92400E", lightColor: "#FEF3C7", desc: "Already covered elsewhere, repetitive, or not needed in new structure" },
 ];
-
-// Source labels:
-// V1 = Summer 2025 original DSLP (version things got lost FROM in revision)
-// V2 = V2 Working Copy (what the teams were revising)
-// V1-D = V1 Strand D content being considered for Strand C
-// A+H = Andee+Hollylynne proposal  |  K+T = Kate+Thema proposal
 const COMPETENCIES = [
   // ── V1 Strand C (Summer 2025 original) ──
   { id:"v2_c11_k2a",  text:"Recognize that categorical data does not have a measure of center.", grade:"K-2",   source:"V1", concept:"C.1.1 Measures of Center" },
@@ -300,266 +361,189 @@ const COMPETENCIES = [
   { id:"kt_c22_68",   text:"[K/T] Use reasoning about distributions to compare two groups based on quantitative variables.", grade:"6-8",   source:"K+T", concept:"C.2.3 Investigating Multiple Variables" },
   { id:"kt_simp",     text:"[K/T] Review examples of Simpson's Paradox in media and research studies.", grade:"11-12", source:"K+T", concept:"C.2.3 Investigating Multiple Variables" },
 ];
-
-// ── COLOURS ────────────────────────────────────────────────────────────────────
 const GRADE_COLOR = { "K-2":"#E8733A", "3-5":"#1A7A4A", "6-8":"#1B6CA8", "9-10":"#7B3FA0", "11-12":"#C0392B" };
 const SOURCE_COLOR = { "V1":"#6B5B00", "V1-D":"#8B2000", "V2":"#444", "V2-D":"#C0392B", "A+H":"#1B6CA8", "K+T":"#1A7A4A" };
 const SOURCE_LABEL = { "V1":"V1-C", "V1-D":"V1-D", "V2":"V2-C", "V2-D":"V2-D", "A+H":"A+H", "K+T":"K+T" };
 
-// ── MAIN APP ──────────────────────────────────────────────────────────────────
-function App() {
-  const [placements, setPlacements] = useState({});
-  const [search, setSearch] = useState("");
-  const [filterGrade, setFilterGrade] = useState("all");
-  const [filterSource, setFilterSource] = useState("all");
-  const [dragId, setDragId] = useState(null);
-  const [dragOver, setDragOver] = useState(null);
-  const [showDone, setShowDone] = useState(false);
+// ── STATE ────────────────────────────────────────────────────────────────────
+const placements = {}; // id -> zoneId
+let dragId = null;
 
-  const placed = new Set(Object.keys(placements));
-  const unplaced = COMPETENCIES.filter(c => {
-    if (placed.has(c.id)) return false;
-    if (search && !c.text.toLowerCase().includes(search.toLowerCase()) && !c.concept.toLowerCase().includes(search.toLowerCase())) return false;
-    if (filterGrade !== "all" && c.grade !== filterGrade) return false;
-    if (filterSource !== "all" && c.source !== filterSource) return false;
-    return true;
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function updateProgress() {
+  const placed = Object.keys(placements).length;
+  const total = COMPETENCIES.length;
+  document.getElementById('placed-count').textContent = placed;
+  document.getElementById('total-count').textContent = total;
+  document.getElementById('pct').textContent = Math.round(placed/total*100) + '%';
+}
+
+function getSearch() { return document.getElementById('search').value.toLowerCase(); }
+function getGrade()  { return document.getElementById('filter-grade').value; }
+function getSource() { return document.getElementById('filter-source').value; }
+
+function makeCard(c, inZone) {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.draggable = true;
+  div.dataset.id = c.id;
+
+  const gc = GRADE_COLOR[c.grade] || '#888';
+  const sc = SOURCE_COLOR[c.source] || '#888';
+  const sl = SOURCE_LABEL[c.source] || c.source;
+
+  div.innerHTML = `
+    <div class="card-badges">
+      <span class="badge" style="background:${gc}">${c.grade}</span>
+      <span class="badge" style="background:${sc}">${sl}</span>
+      <span class="card-concept">${c.concept}</span>
+    </div>
+    <div class="card-text">${c.text}</div>
+    ${inZone ? '<button class="card-return">&#8592; Return to queue</button>' : ''}
+  `;
+
+  div.addEventListener('dragstart', e => {
+    dragId = c.id;
+    setTimeout(() => div.classList.add('dragging'), 0);
+  });
+  div.addEventListener('dragend', () => {
+    div.classList.remove('dragging');
+    dragId = null;
   });
 
-  const getZoneItems = (zoneId) =>
-    COMPETENCIES.filter(c => placements[c.id] === zoneId);
-
-  const handleDragStart = (id) => setDragId(id);
-  const handleDragEnd = () => { setDragId(null); setDragOver(null); };
-  const handleDragOver = (e, zoneId) => { e.preventDefault(); setDragOver(zoneId); };
-  const handleDrop = (e, zoneId) => {
-    e.preventDefault();
-    if (dragId) {
-      setPlacements(p => ({ ...p, [dragId]: zoneId }));
-    }
-    setDragOver(null);
-  };
-  const handleRemove = (id) => {
-    setPlacements(p => { const n={...p}; delete n[id]; return n; });
-  };
-
-  const totalPlaced = Object.keys(placements).length;
-  const totalItems = COMPETENCIES.length;
-  const pct = Math.round((totalPlaced / totalItems) * 100);
-
-  // Export
-  const handleExport = () => {
-    const rows = [["Competency ID","Grade","Source","Original Concept","Text","Placed In"]];
-    COMPETENCIES.forEach(c => {
-      rows.push([c.id, c.grade, c.source, c.concept, c.text, placements[c.id] || "UNPLACED"]);
+  if (inZone) {
+    div.querySelector('.card-return').addEventListener('click', e => {
+      e.stopPropagation();
+      delete placements[c.id];
+      updateProgress();
+      renderQueue();
+      renderZones();
     });
-    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], {type:"text/csv"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href=url; a.download="strand_c_sorting.csv"; a.click();
-  };
-
-  return (
-    <div style={{fontFamily:"system-ui, sans-serif", background:"#F4F6F8", minHeight:"100vh", display:"flex", flexDirection:"column"}}>
-      {/* Header */}
-      <div style={{background:"#1B2A4A", color:"#fff", padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, flexWrap:"wrap"}}>
-        <div>
-          <div style={{fontSize:18, fontWeight:700, letterSpacing:"-0.3px"}}>Strand C Restructuring — Competency Sorter</div>
-          <div style={{fontSize:12, color:"#8EADD4", marginTop:2}}>Drag cards from the queue into the new Strand C structure (or other strands)</div>
-        </div>
-        <div style={{display:"flex", gap:10, alignItems:"center", flexWrap:"wrap"}}>
-          <div style={{background:"#253659", borderRadius:8, padding:"6px 14px", fontSize:13}}>
-            <span style={{color:"#8EADD4"}}>Placed: </span>
-            <span style={{fontWeight:700}}>{totalPlaced}/{totalItems}</span>
-            <span style={{color:"#8EADD4", marginLeft:6}}>{pct}%</span>
-          </div>
-          <button onClick={handleExport} style={{background:"#028090", border:"none", color:"#fff", borderRadius:8, padding:"7px 16px", fontSize:13, cursor:"pointer", fontWeight:600}}>
-            ↓ Export CSV
-          </button>
-        </div>
-      </div>
-
-      <div style={{display:"flex", flex:1, overflow:"hidden", height:"calc(100vh - 62px)"}}>
-
-        {/* LEFT: Queue */}
-        <div style={{width:340, minWidth:280, background:"#fff", borderRight:"1px solid #E2E8F0", display:"flex", flexDirection:"column", overflow:"hidden"}}>
-          <div style={{padding:"14px 16px", borderBottom:"1px solid #E2E8F0"}}>
-            <div style={{fontSize:13, fontWeight:700, color:"#1B2A4A", marginBottom:10}}>
-              Competency Queue <span style={{color:"#888", fontWeight:400, fontSize:12}}>({unplaced.length} remaining)</span>
-            </div>
-            <input
-              placeholder="Search..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{width:"100%", border:"1px solid #D1D5DB", borderRadius:6, padding:"6px 10px", fontSize:12, marginBottom:8, boxSizing:"border-box"}}
-            />
-            <div style={{display:"flex", gap:6}}>
-              <select value={filterGrade} onChange={e => setFilterGrade(e.target.value)}
-                style={{flex:1, border:"1px solid #D1D5DB", borderRadius:6, padding:"5px 6px", fontSize:11}}>
-                <option value="all">All Grades</option>
-                {["K-2","3-5","6-8","9-10","11-12"].map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
-              <select value={filterSource} onChange={e => setFilterSource(e.target.value)}
-                style={{flex:1, border:"1px solid #D1D5DB", borderRadius:6, padding:"5px 6px", fontSize:11}}>
-                <option value="all">All Sources</option>
-                <option value="V1">V1 Summer 2025 (Strand C)</option>
-                <option value="V1-D">V1 Summer 2025 (Strand D)</option>
-                <option value="A+H">Andee+Hollylynne</option>
-                <option value="K+T">Kate+Thema</option>
-              </select>
-            </div>
-          </div>
-          <div style={{flex:1, overflowY:"auto", padding:"10px 12px", display:"flex", flexDirection:"column", gap:6}}>
-            {unplaced.length === 0 && (
-              <div style={{color:"#888", fontSize:12, padding:16, textAlign:"center"}}>
-                {totalPlaced === totalItems ? "🎉 All items placed!" : "No items match your filter."}
-              </div>
-            )}
-            {unplaced.map(c => (
-              <CompCard key={c.id} c={c} onDragStart={handleDragStart} onDragEnd={handleDragEnd} />
-            ))}
-          </div>
-        </div>
-
-        {/* RIGHT: Drop Zones */}
-        <div style={{flex:1, overflowY:"auto", padding:20, display:"flex", flexDirection:"column", gap:20}}>
-
-          {/* Strand C substrands */}
-          {STRAND_C_TARGET.substrands.map(sub => (
-            <div key={sub.id} style={{background:"#fff", borderRadius:12, border:`2px solid ${sub.color}20`, overflow:"hidden", boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
-              <div style={{background:sub.color, padding:"10px 16px", color:"#fff", fontWeight:700, fontSize:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                <span>{sub.label}</span>
-                <span style={{fontSize:12, fontWeight:400, opacity:0.8}}>
-                  {sub.zones.reduce((a,z) => a + getZoneItems(z.id).length, 0)} items
-                </span>
-              </div>
-              <div style={{display:"grid", gridTemplateColumns:`repeat(${sub.zones.length}, 1fr)`, gap:0}}>
-                {sub.zones.map((zone, zi) => (
-                  <DropZone
-                    key={zone.id}
-                    zone={zone}
-                    items={getZoneItems(zone.id)}
-                    color={sub.color}
-                    lightColor={sub.lightColor}
-                    isOver={dragOver === zone.id}
-                    onDragOver={e => handleDragOver(e, zone.id)}
-                    onDrop={e => handleDrop(e, zone.id)}
-                    onRemove={handleRemove}
-                    hasBorder={zi < sub.zones.length - 1}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-
-          {/* Other strands */}
-          <div style={{background:"#fff", borderRadius:12, border:"1px solid #E2E8F0", overflow:"hidden", boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
-            <div style={{background:"#64748B", padding:"10px 16px", color:"#fff", fontWeight:700, fontSize:14}}>
-              Doesn't belong in Strand C → Route elsewhere
-            </div>
-            <div style={{display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:0}}>
-              {OTHER_BUCKETS.map((b, bi) => (
-                <DropZone
-                  key={b.id}
-                  zone={{id:b.id, label:b.label, desc:b.desc}}
-                  items={getZoneItems(b.id)}
-                  color={b.color}
-                  lightColor={b.lightColor}
-                  isOver={dragOver === b.id}
-                  onDragOver={e => handleDragOver(e, b.id)}
-                  onDrop={e => handleDrop(e, b.id)}
-                  onRemove={handleRemove}
-                  hasBorder={bi % 3 !== 2}
-                  compact
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Notes reminder */}
-          <div style={{background:"#FEF9EC", border:"1px solid #F0D060", borderRadius:10, padding:"12px 16px", fontSize:12, color:"#7A5800"}}>
-            <strong>Reminder on C3 structure:</strong> Unlike C1 and C2, C3 (Interpreting Variability) is <em>not</em> split into single/multi variable — the judgment about whether variability is meaningful is the same cognitive move regardless of variable count. C3 is better organized around <em>sources</em>: natural variability, measurement variability, and sampling variability.
-          </div>
-
-        </div>
-      </div>
-    </div>
-  );
+  }
+  return div;
 }
 
-function CompCard({ c, onDragStart, onDragEnd, placed, onRemove }) {
-  return (
-    <div
-      draggable
-      onDragStart={() => onDragStart(c.id)}
-      onDragEnd={onDragEnd}
-      style={{
-        background:"#FAFAFA",
-        border:"1px solid #E5E7EB",
-        borderRadius:8,
-        padding:"9px 11px",
-        cursor:"grab",
-        userSelect:"none",
-        fontSize:12,
-        lineHeight:1.5,
-        transition:"box-shadow 0.15s",
-      }}
-      onMouseEnter={e => e.currentTarget.style.boxShadow="0 3px 10px rgba(0,0,0,0.12)"}
-      onMouseLeave={e => e.currentTarget.style.boxShadow="none"}
-    >
-      <div style={{display:"flex", gap:5, marginBottom:5, flexWrap:"wrap", alignItems:"center"}}>
-        <span style={{
-          background: GRADE_COLOR[c.grade] || "#888",
-          color:"#fff", borderRadius:4, padding:"1px 7px", fontSize:10, fontWeight:700
-        }}>{c.grade}</span>
-        <span style={{
-          background: SOURCE_COLOR[c.source] || "#888",
-          color:"#fff", borderRadius:4, padding:"1px 7px", fontSize:10, fontWeight:700
-        }}>{SOURCE_LABEL[c.source] || c.source}</span>
-        <span style={{color:"#888", fontSize:10, fontStyle:"italic"}}>{c.concept}</span>
-      </div>
-      <div style={{color:"#1E293B"}}>{c.text}</div>
-      {onRemove && (
-        <button onClick={() => onRemove(c.id)} style={{marginTop:6, fontSize:10, background:"none", border:"1px solid #ccc", borderRadius:4, padding:"2px 8px", cursor:"pointer", color:"#666"}}>
-          ← Return to queue
-        </button>
-      )}
-    </div>
-  );
+// ── QUEUE ────────────────────────────────────────────────────────────────────
+function renderQueue() {
+  const list = document.getElementById('queue-list');
+  list.innerHTML = '';
+  const s = getSearch(), g = getGrade(), src = getSource();
+  const visible = COMPETENCIES.filter(c => {
+    if (placements[c.id]) return false;
+    if (s && !c.text.toLowerCase().includes(s) && !c.concept.toLowerCase().includes(s)) return false;
+    if (g && c.grade !== g) return false;
+    if (src && c.source !== src) return false;
+    return true;
+  });
+  document.getElementById('remaining').textContent = `(${visible.length} remaining)`;
+  if (!visible.length) {
+    const msg = document.createElement('div');
+    msg.style.cssText = 'color:#888;font-size:12px;padding:16px;text-align:center';
+    msg.textContent = Object.keys(placements).length === COMPETENCIES.length ? '🎉 All items placed!' : 'No items match filter.';
+    list.appendChild(msg);
+    return;
+  }
+  visible.forEach(c => list.appendChild(makeCard(c, false)));
 }
 
-function DropZone({ zone, items, color, lightColor, isOver, onDragOver, onDrop, onRemove, hasBorder, compact }) {
-  return (
-    <div
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-      style={{
-        borderRight: hasBorder ? `1px solid ${color}30` : "none",
-        background: isOver ? lightColor : "#FAFCFF",
-        transition:"background 0.15s",
-        padding:"12px 14px",
-        minHeight: compact ? 80 : 120,
-      }}
-    >
-      <div style={{fontSize:12, fontWeight:700, color, marginBottom:zone.desc ? 2 : 8}}>{zone.label}</div>
-      {zone.desc && <div style={{fontSize:10, color:"#888", marginBottom:8, fontStyle:"italic"}}>{zone.desc}</div>}
-      {isOver && items.length === 0 && (
-        <div style={{border:`2px dashed ${color}`, borderRadius:8, height:48, display:"flex", alignItems:"center", justifyContent:"center", color, fontSize:11, opacity:0.6}}>
-          Drop here
-        </div>
-      )}
-      <div style={{display:"flex", flexDirection:"column", gap:6}}>
-        {items.map(c => <CompCard key={c.id} c={c} onDragStart={() => {}} onDragEnd={() => {}} onRemove={onRemove} />)}
-      </div>
-      {items.length === 0 && !isOver && (
-        <div style={{color:"#CBD5E1", fontSize:11, textAlign:"center", paddingTop:8}}>drag items here</div>
-      )}
-    </div>
-  );
+// ── ZONES ────────────────────────────────────────────────────────────────────
+function makeZone(zoneId, label, desc, color, lightColor, hasBorder) {
+  const div = document.createElement('div');
+  div.className = 'zone';
+  div.dataset.zone = zoneId;
+  if (hasBorder) div.style.borderRight = `1px solid ${color}30`;
+
+  div.innerHTML = `
+    <div class="zone-label" style="color:${color}">${label}</div>
+    ${desc ? `<div class="zone-desc">${desc}</div>` : ''}
+    <div class="zone-items"></div>
+    <div class="zone-empty" style="display:none">drag items here</div>
+  `;
+
+  div.addEventListener('dragover', e => { e.preventDefault(); div.classList.add('drag-over'); });
+  div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
+  div.addEventListener('drop', e => {
+    e.preventDefault();
+    div.classList.remove('drag-over');
+    if (dragId) {
+      placements[dragId] = zoneId;
+      updateProgress();
+      renderQueue();
+      renderZones();
+    }
+  });
+  return div;
 }
 
+function renderZones() {
+  // Strand C zones
+  const strandEl = document.getElementById('strand-c-zones');
+  strandEl.innerHTML = '';
 
-    const domRoot = ReactDOM.createRoot(document.getElementById('root'));
-    domRoot.render(<App />);
-  </script>
+  STRAND_C_TARGET.substrands.forEach(sub => {
+    const block = document.createElement('div');
+    block.className = 'substrand-block';
+
+    const itemCount = sub.zones.reduce((a,z) => a + COMPETENCIES.filter(c => placements[c.id] === z.id).length, 0);
+    const hdr = document.createElement('div');
+    hdr.className = 'substrand-header';
+    hdr.style.background = sub.color;
+    hdr.innerHTML = `<span>${sub.label}</span><span style="font-size:11px;font-weight:400;opacity:.8">${itemCount} items</span>`;
+    block.appendChild(hdr);
+
+    const row = document.createElement('div');
+    row.className = 'zones-row';
+    row.style.gridTemplateColumns = `repeat(${sub.zones.length}, 1fr)`;
+    sub.zones.forEach((zone, zi) => {
+      const zEl = makeZone(zone.id, zone.label, '', sub.color, sub.lightColor, zi < sub.zones.length - 1);
+      const items = COMPETENCIES.filter(c => placements[c.id] === zone.id);
+      const itemsEl = zEl.querySelector('.zone-items');
+      const emptyEl = zEl.querySelector('.zone-empty');
+      items.forEach(c => itemsEl.appendChild(makeCard(c, true)));
+      emptyEl.style.display = items.length ? 'none' : 'block';
+      row.appendChild(zEl);
+    });
+    block.appendChild(row);
+    strandEl.appendChild(block);
+  });
+
+  // Other zones
+  const otherEl = document.getElementById('other-zones');
+  otherEl.innerHTML = '';
+  OTHER_BUCKETS.forEach((b, bi) => {
+    const zEl = makeZone(b.id, b.label, b.desc, b.color, b.lightColor, bi % 3 !== 2);
+    const items = COMPETENCIES.filter(c => placements[c.id] === b.id);
+    const itemsEl = zEl.querySelector('.zone-items');
+    const emptyEl = zEl.querySelector('.zone-empty');
+    items.forEach(c => itemsEl.appendChild(makeCard(c, true)));
+    emptyEl.style.display = items.length ? 'none' : 'block';
+    zEl.style.minHeight = '80px';
+    otherEl.appendChild(zEl);
+  });
+}
+
+// ── EXPORT ───────────────────────────────────────────────────────────────────
+document.getElementById('export-btn').addEventListener('click', () => {
+  const rows = [['Competency ID','Grade','Source','Original Concept','Text','Placed In']];
+  COMPETENCIES.forEach(c => {
+    rows.push([c.id, c.grade, c.source, c.concept, c.text, placements[c.id] || 'UNPLACED']);
+  });
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'strand_c_sorting.csv';
+  a.click();
+});
+
+// ── FILTERS ──────────────────────────────────────────────────────────────────
+document.getElementById('search').addEventListener('input', renderQueue);
+document.getElementById('filter-grade').addEventListener('change', renderQueue);
+document.getElementById('filter-source').addEventListener('change', renderQueue);
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+updateProgress();
+renderQueue();
+renderZones();
+</script>
 </body>
 </html>
