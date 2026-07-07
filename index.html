@@ -11,21 +11,16 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body, #root { height: 100%; }
     body { font-family: system-ui, -apple-system, sans-serif; background: #F4F6F8; }
-    /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #f1f1f1; }
     ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-    /* Drag ghost */
-    [draggable] { -webkit-user-drag: element; }
   </style>
 </head>
 <body>
   <div id="root"></div>
-
   <script type="text/babel" data-presets="react">
     const { useState } = React;
 
-const { useState, useCallback, useRef } = React;
 
 // ── DATA ──────────────────────────────────────────────────────────────────────
 
@@ -563,8 +558,8 @@ function DropZone({ zone, items, color, lightColor, isOver, onDragOver, onDrop, 
 }
 
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    const domRoot = ReactDOM.createRoot(document.getElementById('root'));
+    domRoot.render(<App />);
   </script>
 </body>
 </html>
