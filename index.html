@@ -3,47 +3,63 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Strand C Competency Sorter — DSLP Revision</title>
+  <title>Strand C Concept Sorter — DSLP Revision</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%;font-family:system-ui,-apple-system,sans-serif;background:#F4F6F8}
     #app{display:flex;flex-direction:column;height:100vh}
-    #header{background:#1B2A4A;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
-    #header h1{font-size:17px;font-weight:700;letter-spacing:-.3px}
+    #header{background:#1B2A4A;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;flex-shrink:0}
+    #header h1{font-size:16px;font-weight:700}
     #header p{font-size:11px;color:#8EADD4;margin-top:2px}
-    #progress{background:#253659;border-radius:7px;padding:5px 12px;font-size:13px;white-space:nowrap}
+    #topbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    #progress{background:#253659;border-radius:7px;padding:5px 12px;font-size:12px;white-space:nowrap}
     #progress span{color:#8EADD4}
-    #export-btn{background:#028090;border:none;color:#fff;border-radius:7px;padding:7px 14px;font-size:13px;cursor:pointer;font-weight:600}
+    #export-btn{background:#028090;border:none;color:#fff;border-radius:7px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:600}
     #body{display:flex;flex:1;overflow:hidden}
-    #queue-panel{width:330px;min-width:260px;background:#fff;border-right:1px solid #E2E8F0;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+    /* QUEUE */
+    #queue-panel{width:360px;min-width:280px;background:#fff;border-right:1px solid #E2E8F0;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
     #queue-header{padding:12px 14px;border-bottom:1px solid #E2E8F0}
-    #queue-header h2{font-size:13px;font-weight:700;color:#1B2A4A;margin-bottom:8px}
+    #queue-header h2{font-size:12px;font-weight:700;color:#1B2A4A;margin-bottom:8px}
     #search{width:100%;border:1px solid #D1D5DB;border-radius:6px;padding:6px 9px;font-size:12px;margin-bottom:7px}
     .filters{display:flex;gap:5px}
     .filters select{flex:1;border:1px solid #D1D5DB;border-radius:6px;padding:4px 5px;font-size:11px}
-    #queue-list{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:5px}
-    #drop-panel{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+    #queue-list{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+    /* CARDS */
+    .card{background:#FAFAFA;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;cursor:grab;user-select:none}
+    .card:hover{box-shadow:0 3px 12px rgba(0,0,0,.1);border-color:#C8D5E8}
+    .card.dragging{opacity:.4;cursor:grabbing}
+    .card-top{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;align-items:center}
+    .badge{border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;color:#fff;white-space:nowrap}
+    .card-substrand{font-size:9px;color:#999;font-style:italic;margin-bottom:3px}
+    .card-name{font-size:12px;font-weight:700;color:#1B2A4A;margin-bottom:4px}
+    .card-desc{font-size:11px;color:#555;line-height:1.5}
+    .card-return{margin-top:7px;font-size:10px;background:none;border:1px solid #ccc;border-radius:4px;padding:2px 8px;cursor:pointer;color:#666}
+    /* DROP PANEL */
+    #drop-panel{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
     .substrand-block{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
     .substrand-header{padding:9px 14px;color:#fff;font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center}
     .zones-row{display:grid;gap:0}
-    .zone{padding:10px 12px;min-height:100px;transition:background .15s;position:relative}
-    .zone.drag-over{outline:2px dashed #028090;outline-offset:-2px}
-    .zone-label{font-size:11px;font-weight:700;margin-bottom:4px}
-    .zone-desc{font-size:10px;color:#888;font-style:italic;margin-bottom:6px}
-    .zone-empty{color:#CBD5E1;font-size:11px;text-align:center;padding-top:10px}
-    .zone-items{display:flex;flex-direction:column;gap:5px}
-    .card{background:#FAFAFA;border:1px solid #E5E7EB;border-radius:7px;padding:8px 10px;cursor:grab;user-select:none;font-size:11px;line-height:1.45}
-    .card:hover{box-shadow:0 3px 10px rgba(0,0,0,.1)}
-    .card.dragging{opacity:.5;cursor:grabbing}
-    .card-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;align-items:center}
-    .badge{border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700;color:#fff}
-    .card-concept{color:#888;font-size:9px;font-style:italic}
-    .card-text{color:#1E293B;margin-top:2px}
-    .card-return{margin-top:5px;font-size:10px;background:none;border:1px solid #ccc;border-radius:4px;padding:2px 7px;cursor:pointer;color:#666}
+    .zone{padding:12px 14px;min-height:110px;transition:background .12s}
+    .zone.over{outline:2px dashed #028090;outline-offset:-3px;background:#EEF8FA}
+    .zone-label{font-size:11px;font-weight:700;margin-bottom:2px}
+    .zone-desc{font-size:10px;color:#888;font-style:italic;margin-bottom:8px}
+    .zone-empty{color:#C8D5E0;font-size:11px;text-align:center;padding:10px 0}
+    .zone-items{display:flex;flex-direction:column;gap:6px}
+    /* OTHER BUCKETS */
     .other-block{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
     .other-header{background:#64748B;padding:9px 14px;color:#fff;font-weight:700;font-size:13px}
     .other-zones{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
-    .note{background:#FEF9EC;border:1px solid #F0D060;border-radius:8px;padding:10px 14px;font-size:11px;color:#7A5800}
+    /* NOTE */
+    .note{background:#FEF9EC;border:1px solid #F0D060;border-radius:8px;padding:10px 14px;font-size:11px;color:#7A5800;line-height:1.5}
+
+    .card-custom{background:#FFFBF0;border:1.5px dashed #F0C040}
+    .card-custom:hover{border-color:#E8A020}
+    .card-input{width:100%;border:none;background:transparent;font-size:12px;font-weight:700;color:#1B2A4A;outline:none;margin-bottom:3px}
+    .card-input::placeholder{color:#BBAA80;font-weight:400}
+    .card-textarea{width:100%;border:none;background:transparent;font-size:11px;color:#555;outline:none;resize:none;line-height:1.5;min-height:40px}
+    .card-textarea::placeholder{color:#BBAA80}
+    .badge-custom{background:#E8A020}
+    /* scrollbar */
     ::-webkit-scrollbar{width:5px}
     ::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
   </style>
@@ -52,29 +68,25 @@
 <div id="app">
   <div id="header">
     <div>
-      <h1>Strand C Restructuring — Competency Sorter</h1>
-      <p>Sources: V2 (Strand C + D), V1 items that fell out of V2 (probability/inference/variability), A+H and K+T proposals.</p>
+      <h1>Strand C Concept Sorter — DSLP Revision</h1>
+      <p>Drag concepts into the new Strand C structure, or route them elsewhere. Sources: V2 (Strand C &amp; D), V1 concepts that fell out of V2, A+H and K+T proposals.</p>
     </div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <div id="progress"><span>Placed: </span><b id="placed-count">0</b><span>/</span><b id="total-count">0</b><span> </span><b id="pct">0%</b></div>
-      <button id="export-btn">&#8595; Export CSV</button>
+    <div id="topbar">
+      <div id="progress"><span>Placed: </span><b id="placed-count">0</b><span>/</span><b id="total-count">0</b><span> · </span><b id="pct">0%</b></div>
+      <button id="export-btn">↓ Export CSV</button>
     </div>
   </div>
   <div id="body">
     <div id="queue-panel">
       <div id="queue-header">
-        <h2>Competency Queue <span id="remaining" style="font-weight:400;color:#888;font-size:11px"></span></h2>
-        <input id="search" placeholder="Search competencies..."/>
+        <h2>Concept Queue <span id="remaining" style="font-weight:400;color:#888;font-size:11px"></span></h2>
+        <input id="search" placeholder="Search concepts..."/>
         <div class="filters">
-          <select id="filter-grade">
-            <option value="">All Grades</option>
-            <option>K-2</option><option>3-5</option><option>6-8</option><option>9-10</option><option>11-12</option>
-          </select>
           <select id="filter-source">
             <option value="">All Sources</option>
             <option value="V2-C">V2 (Strand C)</option>
             <option value="V2-D">V2 (Strand D)</option>
-            <option value="V1">V1 — fell out of V2 (probability, inference, variability)</option>
+            <option value="V1">V1 — fell out of V2</option>
             <option value="A+H">Andee+Hollylynne</option>
             <option value="K+T">Kate+Thema</option>
           </select>
@@ -85,362 +97,109 @@
     <div id="drop-panel">
       <div id="strand-c-zones"></div>
       <div class="other-block">
-        <div class="other-header">Doesn't belong in Strand C &#8594; Route elsewhere</div>
+        <div class="other-header">Doesn't belong in Strand C → Route elsewhere</div>
         <div class="other-zones" id="other-zones"></div>
       </div>
-    </div>
+</div>
   </div>
 </div>
 <script>
-const STRAND_C_TARGET = {
-  id: "strand_c",
-  label: "Strand C",
+const CONCEPTS = [
+  {id:"v2c_c11", source:"V2-C", substrand:"V2 Substrand C1 · Single Variable Distributions", name:"C.1.1 Describing and Visualizing Single Variable Distributions", desc:"Describe and visualize distributions of numerical and categorical data by characterizing shape, center, and spread (for numerical data) and frequencies and proportions (for categorical data), understanding how distribution characteristics impact interpretation."},
+  {id:"v2c_c21", source:"V2-C", substrand:"V2 Substrand C2 · Multivariate Distributions", name:"C.2.1 Describing and Visualizing Multivariate Relationships", desc:"Describe and visualize relationships among multiple variables, both numerical and categorical, focusing on visualization as a tool for exploration and understanding and letting the data reveal its own patterns, trends, associations, and differences between groups."},
+  {id:"v2c_c31", source:"V2-C", substrand:"V2 Substrand C3 · Investigating with Distributions", name:"C.3.1 Using Technology for Data Exploration", desc:"Use appropriate digital tools to support data exploration and analysis throughout the investigation process."},
+  {id:"v2c_c32", source:"V2-C", substrand:"V2 Substrand C3 · Investigating with Distributions", name:"C.3.2 Investigating Questions about Single Variables", desc:"Use appropriate numerical and graphical summaries to reason about questions about single variables in context."},
+  {id:"v2c_c33", source:"V2-C", substrand:"V2 Substrand C3 · Investigating with Distributions", name:"C.3.3 Investigating Questions about Multiple Variables", desc:"Use appropriate numerical and graphical summaries to investigate questions involving relationships among multiple variables in context."},
+  {id:"v2d_d11", source:"V2-D", substrand:"V2 Substrand D1 · Understanding Models of Data", name:"D.1.1 Models as Approximations", desc:"Recognize and evaluate that all models are simplifications that are inherently incomplete (in George Box's words, \"all models are wrong\"), but can be useful approximations when they help us understand patterns and make predictions. Students learn to choose appropriate models for the situation and data available, assess the limitations of models and representations, and recognize the uncertainty inherent in any modeling activity."},
+  {id:"v2d_d12", source:"V2-D", substrand:"V2 Substrand D1 · Understanding Models of Data", name:"D.1.2 Models as Mathematical Relationships", desc:"Examine how mathematical models express relationships between input variables and outputs, a structure that applies across simple functions to complex AI systems. In data science, a model is a mathematical or computational representation of relationships in data, used to describe, predict, or explain."},
+  {id:"v2d_d13", source:"V2-D", substrand:"V2 Substrand D1 · Understanding Models of Data", name:"D.1.3 Probability Distributions as Models", desc:"Use probability distributions to model variation and uncertainty, updating conclusions as new evidence emerges."},
+  {id:"v2d_d21", source:"V2-D", substrand:"V2 Substrand D2 · Building Models of Data", name:"D.2.1 Building Models for Quantitative Outcomes", desc:"Build and interpret models that predict or explain quantitative outcomes using appropriate representations and tools."},
+  {id:"v2d_d22", source:"V2-D", substrand:"V2 Substrand D2 · Building Models of Data", name:"D.2.2 Building Models for Categorical Outcomes", desc:"Build and interpret models that predict or explain categorical outcomes, understanding how model outputs vary based on training data and bias."},
+  {id:"v2d_d23", source:"V2-D", substrand:"V2 Substrand D2 · Building Models of Data", name:"D.2.3 Modeling Using Simulation", desc:"Build simulations to estimate probabilities, margins of error, and sampling variability, using them to differentiate real results from random chance."},
+  {id:"v2d_d31", source:"V2-D", substrand:"V2 Substrand D3 · Using Models of Data", name:"D.3.1 Making Predictions with Models", desc:"Use models to make predictions about outcomes, understanding prediction quality and uncertainty."},
+  {id:"v2d_d32", source:"V2-D", substrand:"V2 Substrand D3 · Using Models of Data", name:"D.3.2 Investigating Processes and Causal Relationships", desc:"Use models to investigate how processes work and explore causal relationships, separating correlation from causation."},
+  {id:"v2d_d41", source:"V2-D", substrand:"V2 Substrand D4 · Evaluating Models of Data", name:"D.4.1 Quantifying Model Error", desc:"Compare model outputs with observed data to quantify error, recognizing that error can arise from unexplained variation, model bias, or overfitting to the training data."},
+  {id:"v2d_d42", source:"V2-D", substrand:"V2 Substrand D4 · Evaluating Models of Data", name:"D.4.2 Evaluating Model Generalizability", desc:"Evaluate whether models and conclusions generalize beyond immediate samples to broader populations or contexts, understanding constraints and limitations of inference."},
+  {id:"v2d_d43", source:"V2-D", substrand:"V2 Substrand D4 · Evaluating Models of Data", name:"D.4.3 Comparing and Improving Models", desc:"Use error analysis to compare models, evaluate their usefulness, and improve performance iteratively."},
+  {id:"v1_c31", source:"V1", substrand:"V1 Substrand C3 · Variability in Data", name:"C.3.1 Describing Variability", desc:"Identify differences within data by sorting, grouping, and organizing characteristics. Use statistical and simulation methods to represent and analyze variability, connecting it to real-world uncertainty and probabilistic processes."},
+  {id:"v1_c32", source:"V1", substrand:"V1 Substrand C3 · Variability in Data", name:"C.3.2 Comparing Variability", desc:"Examine differences between groups by analyzing measures of spread, such as range and standard deviation. Utilize visualizations like box plots and apply statistical methods to compare datasets, assess variability, and uncover patterns in data distributions and models."},
+  {id:"v1_c33", source:"V1", substrand:"V1 Substrand C3 · Variability in Data", name:"C.3.3 Understanding Sources of Variability", desc:"Recognize measurement errors and natural variability in data. Assess data quality, identify outliers, and refine models using statistical and contextual analysis."},
+  {id:"v1_c34", source:"V1", substrand:"V1 Substrand C3 · Variability in Data", name:"C.3.4 Variability in Our Computational World", desc:"Explore how AI model outputs vary based on training data, labeling, and bias. Understand how generative AI and pre-trained models use large datasets to make inferences and how variability in data impacts outcomes."},
+  {id:"v1_d11", source:"V1", substrand:"V1 Substrand D1 · Making and Justifying Claims", name:"D.1.1 Probabilistic Language", desc:"When communicating with others, employ both plain-language and clear vocabulary to regularly describe degrees of uncertainty, both formally and informally as a thinking habit."},
+  {id:"v1_d12", source:"V1", substrand:"V1 Substrand D1 · Making and Justifying Claims", name:"D.1.2 Priors and Updates", desc:"When encountering new data, integrate probabilistic thinking into everyday situations by explicating prior assumptions and the impact of new data/evidence on those assumptions."},
+  {id:"v1_d13", source:"V1", substrand:"V1 Substrand D1 · Making and Justifying Claims", name:"D.1.3 Expected Value", desc:"When making a decision about uncertain outcomes in the future, integrate probabilistic thinking into everyday decisions by applying expected value (magnitude x probability) to appropriate situations."},
+  {id:"v1_d14", source:"V1", substrand:"V1 Substrand D1 · Making and Justifying Claims", name:"D.1.4 Explaining Significance", desc:"Clearly describe the basic logic of statistical significance to others, differentiating between significance, the size of an effect, and the statistical power of an analysis. Recognize what statistical significance can reveal and cannot reveal about a phenomenon."},
+  {id:"v1_d15", source:"V1", substrand:"V1 Substrand D1 · Making and Justifying Claims", name:"D.1.5 Sampling and Simulation", desc:"Comfortably identify the purpose of sampling and simulation for making arguments about data, and employ techniques using software to differentiate a real-data result from random chance or 'happenstance.'"},
+  {id:"v1_d16", source:"V1", substrand:"V1 Substrand D1 · Making and Justifying Claims", name:"D.1.6 Correlation Versus Causation", desc:"Comfortably separate correlation from causation in a wide variety of situations, building a 'first-reaction' thinking habit over time."},
+  {id:"v1_d17", source:"V1", substrand:"V1 Substrand D1 · Making and Justifying Claims", name:"D.1.7 Randomization", desc:"When identifying a potential cause of a phenomenon, clearly describe the usefulness of randomization for constructing an argument with data."},
+  {id:"ah_c11", source:"A+H", substrand:"A+H Strand C · Visualizing Data", name:"C.1.1 Visualizing Single Variable Distributions", desc:"Create and interpret visualizations of single variable distributions, including categorical data (by location, color, bar chart), numerical data (dot plots, box plots, histograms), distinguishing between case-value plots and frequency/bar charts, and exploring how binning choices affect interpretation."},
+  {id:"ah_c12", source:"A+H", substrand:"A+H Strand C · Visualizing Data", name:"C.1.2 Visualizing Multiple Variables", desc:"Create and interpret visualizations that reveal relationships among multiple variables: line plots with categorical coloring, time-series graphs, maps, parallel boxplots/histograms, two-way tables, scatterplots (with optional color for a third variable), heatmaps, and complex multi-variable media visualizations."},
+  {id:"ah_c21", source:"A+H", substrand:"A+H Strand C · Describing and Modeling Data", name:"C.2.1 Using Measures to Characterize Signal and Noise — Single Variable", desc:"Use measures of center and spread to describe what is typical (signal) and how much values vary (noise) in a distribution. Progress from counts and modes (K-2) through median and range (3-5), mean/SD/IQR (6-8), formal outlier identification (9-10), to distribution comparisons against standard probability distributions (11-12)."},
+  {id:"ah_c22", source:"A+H", substrand:"A+H Strand C · Describing and Modeling Data", name:"C.2.2 Using Measures and Models to Characterize Relationships Among Variables", desc:"Use numerical summaries and lightweight models to describe relationships between variables and distinguish signal from noise. Includes informal association (K-2/3-5), measures of center for group comparisons (6-8), correlation coefficients and residuals (9-10), two-way table analysis and Simpson's Paradox (11-12)."},
+  {id:"kt_c11", source:"K+T", substrand:"K+T Strand C · Single Variable", name:"C.1.1 Describing Single Variable Distributions", desc:"Describe single variable distributions including shape, center, spread, clusters, and gaps. Explicitly addresses the misconception that all data is numeric, connects variability to uncertainty, and restores the V1 link between distributional shape and probabilistic processes (e.g., dice, random draw)."},
+  {id:"kt_c12", source:"K+T", substrand:"K+T Strand C · Single Variable", name:"C.1.2 Visualizing Single Variable Distributions", desc:"Create and interpret visualizations of single variable distributions. Restores scatterplot at 6-8 (originally V1 6-8.C.2.3b, lost in V2)."},
+  {id:"kt_c21", source:"K+T", substrand:"K+T Strand C · Multi-variable", name:"C.2.1 Investigating Questions about Single Variables", desc:"Use appropriate numerical and graphical summaries to reason about questions about single variables in context, including how data interpretation varies across disciplinary and community perspectives."},
+  {id:"kt_c22", source:"K+T", substrand:"K+T Strand C · Multi-variable", name:"C.2.2 Describing and Visualizing Multivariate Relationships", desc:"Split V2's combined C.2.1 into separate describing and visualizing concepts. Dissolves C3 investigating substrands back into C1/C2 rather than keeping them standalone. Includes Simpson's Paradox at 11-12."},
+];
+const STRAND_C = {
   substrands: [
-    {
-      id: "c1",
-      label: "C1. Visualizing Data",
-      color: "#1B6CA8",
-      lightColor: "#E8F2FB",
-      zones: [
-        { id: "c1_single", label: "C1a · Single Variable" },
-        { id: "c1_multi",  label: "C1b · Multiple Variables" },
+    { id:"c1", label:"C1. Visualizing Data", color:"#1B6CA8", lightColor:"#E8F2FB",
+      zones:[
+        { id:"c1_single", label:"C1a · Single Variable", desc:"" },
+        { id:"c1_multi",  label:"C1b · Multiple Variables", desc:"" },
       ]
     },
-    {
-      id: "c2",
-      label: "C2. Summarizing Data",
-      color: "#1A7A4A",
-      lightColor: "#E6F5EE",
-      zones: [
-        { id: "c2_single", label: "C2a · Single Variable" },
-        { id: "c2_multi",  label: "C2b · Multiple Variables" },
+    { id:"c2", label:"C2. Summarizing Data", color:"#1A7A4A", lightColor:"#E6F5EE",
+      zones:[
+        { id:"c2_single", label:"C2a · Single Variable", desc:"" },
+        { id:"c2_multi",  label:"C2b · Multiple Variables", desc:"" },
       ]
     },
-    {
-      id: "c3",
-      label: "C3. Interpreting Variability",
-      color: "#7B3FA0",
-      lightColor: "#F3EBF9",
-      zones: [
-        { id: "c3a", label: "C3a · Natural & Measurement Variability — where does the spread come from? is this point erroneous or meaningful?" },
-        { id: "c3b", label: "C3b · Sampling Variability & Informal Inference — does this difference reflect something real, or just chance?" },
+    { id:"c3", label:"C3. Interpreting Variability", color:"#7B3FA0", lightColor:"#F3EBF9",
+      zones:[
+        { id:"c3a", label:"C3a · Natural & Measurement Variability", desc:"Where does the spread come from? Is this point erroneous or meaningful?" },
+        { id:"c3b", label:"C3b · Sampling Variability & Informal Inference", desc:"Does this difference reflect something real, or just chance?" },
       ]
     },
   ]
 };
-const OTHER_BUCKETS = [
-  { id: "strand_a", label: "Strand A", color: "#666", lightColor: "#F5F5F5", desc: "Dispositions, ethics, data types, investigative process" },
-  { id: "strand_b", label: "Strand B", color: "#666", lightColor: "#F5F5F5", desc: "Collection, curation, data cleaning" },
-  { id: "strand_d", label: "Strand D", color: "#C0392B", lightColor: "#FDEDED", desc: "Formal models, prediction, inference, probability distributions" },
-  { id: "strand_e", label: "Strand E", color: "#666", lightColor: "#F5F5F5", desc: "Visualization communication, data stories" },
-  { id: "cut", label: "Cut / Redundant", color: "#92400E", lightColor: "#FEF3C7", desc: "Already covered elsewhere, repetitive, or not needed in new structure" },
+
+const OTHER = [
+  { id:"strand_a", label:"Strand A", color:"#64748B", lightColor:"#F5F5F5", desc:"Dispositions, ethics, data types, investigative process" },
+  { id:"strand_b", label:"Strand B", color:"#64748B", lightColor:"#F5F5F5", desc:"Collection, curation, data cleaning" },
+  { id:"strand_d", label:"Strand D", color:"#C0392B", lightColor:"#FDEDED", desc:"Formal models, prediction, inference, probability distributions" },
+  { id:"strand_e", label:"Strand E", color:"#64748B", lightColor:"#F5F5F5", desc:"Visualization communication, data stories" },
+  { id:"cut",      label:"Cut / Redundant", color:"#92400E", lightColor:"#FEF3C7", desc:"Already covered elsewhere or not needed in new structure" },
 ];
-const COMPETENCIES = [
-  {id:"v2c_c11_k2a", grade:"K-2", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Describe data categorically using phrases like \"most popular,\" \"biggest and smallest,\" \"grouped together,\" or \"spread out.\""},
-  {id:"v2c_c11_k2b", grade:"K-2", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Recognize that not all data is numeric — some data describes categories and cannot be averaged or ordered."},
-  {id:"v2c_c11_k2c", grade:"K-2", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Sort objects into a frequency table based on shared characteristics."},
-  {id:"v2c_c11_k2d", grade:"K-2", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Create simple visualizations (picture graphs, bar graphs) to see patterns in familiar data."},
-  {id:"v2c_c11_35a", grade:"3-5", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Calculate the range for numerical data."},
-  {id:"v2c_c11_35b", grade:"3-5", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Describe the number of clusters, symmetry, and gaps in distributions."},
-  {id:"v2c_c11_35c", grade:"3-5", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Summarize data with fractions, proportions, or percentages to make comparisons."},
-  {id:"v2c_c11_35d", grade:"3-5", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Understand that distributions represent how often specific outcomes occur and can be used to compare groups."},
-  {id:"v2c_c11_35e", grade:"3-5", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Recognize that variability in a distribution contributes to uncertainty; the more spread out the data, the less certain we can be about any single predicted value."},
-  {id:"v2c_c11_35f", grade:"3-5", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Create visualizations to explore how data is distributed and identify unusual values."},
-  {id:"v2c_c11_68a", grade:"6-8", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Identify and explain measures of center (mean, median, mode) and their usefulness."},
-  {id:"v2c_c11_68b", grade:"6-8", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Describe whether data is symmetric or asymmetric and identify the number of modes."},
-  {id:"v2c_c11_68c", grade:"6-8", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Generate frequency tables to summarize raw categorical data."},
-  {id:"v2c_c11_68d", grade:"6-8", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Represent variability of numerical variables using appropriate displays (dot plots, box plots)."},
-  {id:"v2c_c11_68e", grade:"6-8", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Identify real-world processes that produce variability (such as rolling dice, drawing from a bag, or measuring natural phenomena) and connect the shape of the resulting distribution to the nature of that process."},
-  {id:"v2c_c11_68f", grade:"6-8", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Create multiple visualizations of the same data to reveal different features."},
-  {id:"v2c_c11_910a", grade:"9-10", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Calculate and interpret standard deviation and interquartile range."},
-  {id:"v2c_c11_910b", grade:"9-10", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Use standard deviation as a measure of variability."},
-  {id:"v2c_c11_910c", grade:"9-10", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Generate relative frequency tables to make comparisons and generalize results."},
-  {id:"v2c_c11_910d", grade:"9-10", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Describe how data is distributed across its range (e.g., skewness)."},
-  {id:"v2c_c11_910e", grade:"9-10", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Visualize distributions to identify shape, center, spread, and outliers."},
-  {id:"v2c_c11_1112a", grade:"11-12", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Explore the sensitivity of the mean to outliers compared to the median."},
-  {id:"v2c_c11_1112b", grade:"11-12", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Determine when to use mean or median based on context and distribution shape."},
-  {id:"v2c_c11_1112c", grade:"11-12", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Apply formal outlier identification methods, including standard deviation thresholds and the IQR rule, and explain the assumptions behind each approach."},
-  {id:"v2c_c11_1112d", grade:"11-12", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Compare representations of relative frequencies and proportions."},
-  {id:"v2c_c11_1112e", grade:"11-12", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Compare ways to represent distributions and their measures of center."},
-  {id:"v2c_c11_1112f", grade:"11-12", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Explain how distribution shape influences the relationship between measures of center."},
-  {id:"v2c_c11_1112g", grade:"11-12", source:"V2-C", concept:"V2 C1.1 Single Variable", text:"Generate multiple representations to explore sensitivity to binning and distributional assumptions."},
-  {id:"v2c_c21_k2a", grade:"K-2", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Construct bar graphs and picture graphs to represent small datasets."},
-  {id:"v2c_c21_k2b", grade:"K-2", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Identify and describe the parts of graphs (titles, labels, pictures) that help others understand data."},
-  {id:"v2c_c21_k2c", grade:"K-2", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Answer questions about data represented visually."},
-  {id:"v2c_c21_35a", grade:"3-5", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Organize and present data visually to support a specific claim or answer a question."},
-  {id:"v2c_c21_35b", grade:"3-5", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Use appropriate colors and labels in visualizations to help audiences understand comparisons."},
-  {id:"v2c_c21_35c", grade:"3-5", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Use parts of graphs (titles, labels, legends, colors) reliably and when appropriate."},
-  {id:"v2c_c21_35d", grade:"3-5", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Compare visualizations of the same data and explain how different features affect interpretation."},
-  {id:"v2c_c21_68a", grade:"6-8", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Create map visualizations to display location data."},
-  {id:"v2c_c21_68b", grade:"6-8", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Create scatterplots for pairs of numerical variables and describe whether the relationship appears positive, negative, or absent."},
-  {id:"v2c_c21_68c", grade:"6-8", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Choose and defend representation and color palette choices for data."},
-  {id:"v2c_c21_910a", grade:"9-10", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Communicate key features of distributions formally and with precision."},
-  {id:"v2c_c21_910b", grade:"9-10", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Understand how uncertainty is communicated in visualizations (e.g. with error bars, confidence intervals)."},
-  {id:"v2c_c21_1112a", grade:"11-12", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Use color theory to represent continuously scaled data."},
-  {id:"v2c_c21_1112b", grade:"11-12", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Create visualizations of the same data at different levels of aggregation, from individual observations to grouped summaries, to reveal patterns and nuances at each level."},
-  {id:"v2c_c21_1112c", grade:"11-12", source:"V2-C", concept:"V2 C2.1 Multivariate", text:"Understand how uncertainty is communicated in visualizations (e.g. with error bars, confidence intervals, etc)."},
-  {id:"v2c_c31_k2", grade:"K-2", source:"V2-C", concept:"V2 C3.1 Tools", text:"Recognize that some digital tools help people who have difficulty seeing, hearing, or using technology."},
-  {id:"v2c_c31_35a", grade:"3-5", source:"V2-C", concept:"V2 C3.1 Tools", text:"Select a digital tool suited for exploring and summarizing categorical and numerical data, and explain why it fits the task."},
-  {id:"v2c_c31_35b", grade:"3-5", source:"V2-C", concept:"V2 C3.1 Tools", text:"Identify tools that make data more accessible (screen readers, captions, tactile graphs)."},
-  {id:"v2c_c31_68a", grade:"6-8", source:"V2-C", concept:"V2 C3.1 Tools", text:"Summarize data represented in a digital tool."},
-  {id:"v2c_c31_68b", grade:"6-8", source:"V2-C", concept:"V2 C3.1 Tools", text:"Create visualizations using a digital tool."},
-  {id:"v2c_c31_68c", grade:"6-8", source:"V2-C", concept:"V2 C3.1 Tools", text:"Identify relationships and patterns using a digital tool."},
-  {id:"v2c_c31_910a", grade:"9-10", source:"V2-C", concept:"V2 C3.1 Tools", text:"Select digital tools appropriate for the data type and the phase of investigation (exploration, cleaning, analysis, or visualization) and justify the choice."},
-  {id:"v2c_c31_910b", grade:"9-10", source:"V2-C", concept:"V2 C3.1 Tools", text:"Use and/or change parameters of simulations to generate data to address a problem of interest."},
-  {id:"v2c_c31_910c", grade:"9-10", source:"V2-C", concept:"V2 C3.1 Tools", text:"Clean and wrangle data using a digital tool."},
-  {id:"v2c_c31_910d", grade:"9-10", source:"V2-C", concept:"V2 C3.1 Tools", text:"Perform data analysis using a digital tool."},
-  {id:"v2c_c31_1112a", grade:"11-12", source:"V2-C", concept:"V2 C3.1 Tools", text:"Integrate multiple digital tools suited for different tasks throughout the investigation process."},
-  {id:"v2c_c31_1112b", grade:"11-12", source:"V2-C", concept:"V2 C3.1 Tools", text:"Select and justify digital tools for different phases of a data investigation, recognizing that different tools serve different purposes — some better for exploration, others for analysis or communication."},
-  {id:"v2c_c32_k2", grade:"K-2", source:"V2-C", concept:"V2 C3.2 Investigating Single Variable", text:"Describe data and interpretations with others."},
-  {id:"v2c_c32_35", grade:"3-5", source:"V2-C", concept:"V2 C3.2 Investigating Single Variable", text:"Describe how data interpretation varies across a wide variety of contexts."},
-  {id:"v2c_c32_68", grade:"6-8", source:"V2-C", concept:"V2 C3.2 Investigating Single Variable", text:"Analyze data interpretations from various disciplinary and community perspectives."},
-  {id:"v2c_c32_910", grade:"9-10", source:"V2-C", concept:"V2 C3.2 Investigating Single Variable", text:"Compare how different analytical choices made during a single-variable investigation lead to different findings."},
-  {id:"v2c_c32_1112", grade:"11-12", source:"V2-C", concept:"V2 C3.2 Investigating Single Variable", text:"Compare multiple analytical approaches to the same single-variable question and evaluate how early differences in choices compound into larger divergences in conclusions."},
-  {id:"v2c_c33_k2", grade:"K-2", source:"V2-C", concept:"V2 C3.3 Investigating Multiple Variables", text:"Observe whether there appears to be an association between two variables."},
-  {id:"v2c_c33_35a", grade:"3-5", source:"V2-C", concept:"V2 C3.3 Investigating Multiple Variables", text:"Use visualizations to identify trends and relationships."},
-  {id:"v2c_c33_35b", grade:"3-5", source:"V2-C", concept:"V2 C3.3 Investigating Multiple Variables", text:"Informally assess whether there is an association between phenomena in visualizations."},
-  {id:"v2c_c33_35c", grade:"3-5", source:"V2-C", concept:"V2 C3.3 Investigating Multiple Variables", text:"Compare characteristics across groups using basic numerical summaries."},
-  {id:"v2c_c33_68a", grade:"6-8", source:"V2-C", concept:"V2 C3.3 Investigating Multiple Variables", text:"Use reasoning about distributions to compare two groups based on quantitative variables."},
-  {id:"v2c_c33_68b", grade:"6-8", source:"V2-C", concept:"V2 C3.3 Investigating Multiple Variables", text:"Use visualizations to compare variability across multiple variables in a dataset."},
-  {id:"v2c_c33_68c", grade:"6-8", source:"V2-C", concept:"V2 C3.3 Investigating Multiple Variables", text:"Summarize variables with measures of central tendency for full datasets and filtered subsets."},
-  {id:"v2c_c33_910a", grade:"9-10", source:"V2-C", concept:"V2 C3.3 Investigating Multiple Variables", text:"Use numerical measures (e.g. mean, standard deviation, quartiles) to compare groups."},
-  {id:"v2c_c33_910b", grade:"9-10", source:"V2-C", concept:"V2 C3.3 Investigating Multiple Variables", text:"Analyze data to uncover associations, trends, and patterns that inform decision-making."},
-  {id:"v2c_c33_910c", grade:"9-10", source:"V2-C", concept:"V2 C3.3 Investigating Multiple Variables", text:"Create summary measures to compare groups at the group level."},
-  {id:"v2c_c33_1112a", grade:"11-12", source:"V2-C", concept:"V2 C3.3 Investigating Multiple Variables", text:"Use simulations (e.g., randomization or permutation tests) to investigate associations between categorical variables."},
-  {id:"v2c_c33_1112b", grade:"11-12", source:"V2-C", concept:"V2 C3.3 Investigating Multiple Variables", text:"Review examples of Simpson's Paradox in media and research studies."},
-  {id:"v2d_d11_k2a", grade:"K-2", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Understand that data can show some things but not others."},
-  {id:"v2d_d11_k2b", grade:"K-2", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Recognize that criteria for sorting objects helps organize them and identify patterns."},
-  {id:"v2d_d11_k2c", grade:"K-2", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Predict whether an object belongs to a group based on its characteristics."},
-  {id:"v2d_d11_35a", grade:"3-5", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Select variables of interest for investigations while recognizing inherent limits."},
-  {id:"v2d_d11_35b", grade:"3-5", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Recognize that patterns and relationships in data provide different kinds of information (e.g., about change over time, differences between groups, or associations between variables)."},
-  {id:"v2d_d11_68a", grade:"6-8", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Approach approximations from models with reasonable skepticism while remaining open-minded about what the data can and cannot show."},
-  {id:"v2d_d11_68b", grade:"6-8", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Recognize that all models produce errors — the difference between a model's prediction and the actual observed value — and that this error is expected and informative, not a sign that the model has failed."},
-  {id:"v2d_d11_68c", grade:"6-8", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Recognize that models simplify complex systems and have limitations."},
-  {id:"v2d_d11_68d", grade:"6-8", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Recognize that relationships in data do not always imply causation."},
-  {id:"v2d_d11_910a", grade:"9-10", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Evaluate models by questioning how phenomena are measured, categorized, or represented."},
-  {id:"v2d_d11_910b", grade:"9-10", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Investigate real-world examples where correlation does not imply causation, identifying confounding variables."},
-  {id:"v2d_d11_1112a", grade:"11-12", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Investigate how assumptions and modeling decisions influence results."},
-  {id:"v2d_d11_1112b", grade:"11-12", source:"V2-D", concept:"V2 D1.1 Models as Approximations", text:"Design and compare alternative data representations, justifying choices and acknowledging what is lost or emphasized."},
-  {id:"v2d_d12_k2", grade:"K-2", source:"V2-D", concept:"V2 D1.2 Models as Mathematical Relationships", text:"Recognize that inputs and outputs can be related: when something goes in, something predictable comes out."},
-  {id:"v2d_d12_35a", grade:"3-5", source:"V2-D", concept:"V2 D1.2 Models as Mathematical Relationships", text:"Recognize that computers can learn those rules from data rather than having them programmed in explicitly."},
-  {id:"v2d_d12_35b", grade:"3-5", source:"V2-D", concept:"V2 D1.2 Models as Mathematical Relationships", text:"Recognize that inputs and outputs can be organized into structured relationships that follow consistent rules and are readable by machines."},
-  {id:"v2d_d12_68", grade:"6-8", source:"V2-D", concept:"V2 D1.2 Models as Mathematical Relationships", text:"Describe in plain language how AI uses structured data, including the categorical and numerical data types, to identify patterns and make predictions."},
-  {id:"v2d_d12_910a", grade:"9-10", source:"V2-D", concept:"V2 D1.2 Models as Mathematical Relationships", text:"Describe the basic mathematical structure of predictive models (including statistical and AI models) in terms of inputs, outputs, and how the relationship between them is estimated from data."},
-  {id:"v2d_d12_910b", grade:"9-10", source:"V2-D", concept:"V2 D1.2 Models as Mathematical Relationships", text:"Identify how biases in training data can lead to biases in AI models."},
-  {id:"v2d_d12_1112a", grade:"11-12", source:"V2-D", concept:"V2 D1.2 Models as Mathematical Relationships", text:"Identify and compare prediction approaches across model types, including regression, classification, and basic AI models."},
-  {id:"v2d_d12_1112b", grade:"11-12", source:"V2-D", concept:"V2 D1.2 Models as Mathematical Relationships", text:"Understand that algorithms use cost functions to measure errors and adjust predictions."},
-  {id:"v2d_d12_1112c", grade:"11-12", source:"V2-D", concept:"V2 D1.2 Models as Mathematical Relationships", text:"Evaluate which modeling approach is most appropriate for a given problem, considering the structure of the data, the question being asked, and the tradeoffs between model types."},
-  {id:"v2d_d13_k2a", grade:"K-2", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Recognize that some situations are not binary and find vocabulary to describe them (always, sometimes, never)."},
-  {id:"v2d_d13_k2b", grade:"K-2", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Discuss a guess before an investigation and compare it to findings."},
-  {id:"v2d_d13_35a", grade:"3-5", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Formulate a guess and identify vocabulary to convey confidence level."},
-  {id:"v2d_d13_35b", grade:"3-5", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Record a guess, compare it to new findings, and assess how the assumption should change."},
-  {id:"v2d_d13_35c", grade:"3-5", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Understand that distributions represent how often specific outcomes occur."},
-  {id:"v2d_d13_68a", grade:"6-8", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Express a finding and quantify confidence by stating degree of certainty."},
-  {id:"v2d_d13_68b", grade:"6-8", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Recognize that assumptions should change based on strength of new evidence."},
-  {id:"v2d_d13_68c", grade:"6-8", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Connect previous assumptions to certainty in findings using terms \"prior assumption,\" \"new evidence,\" and \"updated assumption.\""},
-  {id:"v2d_d13_910a", grade:"9-10", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Describe probability distributions and give real-world examples of different types of random events."},
-  {id:"v2d_d13_910b", grade:"9-10", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Use probability models to assess how likely observed outcomes are compared to chance."},
-  {id:"v2d_d13_1112a", grade:"11-12", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Understand and interpret variability in sampling distributions and how it impacts population estimates."},
-  {id:"v2d_d13_1112b", grade:"11-12", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Describe conditional probability (e.g. Bayes Theorem) and how it relates to updating beliefs with new evidence."},
-  {id:"v2d_d13_1112c", grade:"11-12", source:"V2-D", concept:"V2 D1.3 Probability Distributions as Models", text:"Apply Bayesian reasoning to evaluate how to update prior assumptions when new evidence becomes available."},
-  {id:"v2d_d21_k2a", grade:"K-2", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Articulate simple rules for sorting."},
-  {id:"v2d_d21_k2b", grade:"K-2", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Classify objects based on observed similarities and characteristics."},
-  {id:"v2d_d21_k2c", grade:"K-2", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Extend simple patterns based on observable characteristics."},
-  {id:"v2d_d21_35a", grade:"3-5", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Predict whether an object belongs to a group based on its characteristics."},
-  {id:"v2d_d21_35b", grade:"3-5", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Distinguish patterns from relationships in data."},
-  {id:"v2d_d21_68a", grade:"6-8", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Identify relationships between variables and represent them using mathematical or computational models such as tables, graphs, or equations."},
-  {id:"v2d_d21_68b", grade:"6-8", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Use simple mathematical or computational models to describe patterns and relationships."},
-  {id:"v2d_d21_68c", grade:"6-8", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Test and refine models by comparing predictions to actual data values."},
-  {id:"v2d_d21_910a", grade:"9-10", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Construct and analyze models to represent linear and non-linear relationships."},
-  {id:"v2d_d21_910b", grade:"9-10", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Use technology to create, test, and refine the models, including linear and non-linear models."},
-  {id:"v2d_d21_910c", grade:"9-10", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Differentiate query-based, hypothesis-based, and causal questions and explain how each calls for a different modeling approach."},
-  {id:"v2d_d21_910d", grade:"9-10", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Assess query-based questions by building models that estimate values within acceptable certainty thresholds."},
-  {id:"v2d_d21_910e", grade:"9-10", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Assess hypothesis-based questions by building models that evaluate whether observed outcomes are likely due to chance."},
-  {id:"v2d_d21_1112a", grade:"11-12", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Develop models that incorporate multiple variables and consider interaction effects (e.g. those modeled in multiple regression)."},
-  {id:"v2d_d21_1112b", grade:"11-12", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Use computational methods or machine learning techniques to build and refine models."},
-  {id:"v2d_d21_1112c", grade:"11-12", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Assess assumptions, limitations, and biases in models."},
-  {id:"v2d_d21_1112d", grade:"11-12", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Develop causal diagrams to map relationships among variables."},
-  {id:"v2d_d21_1112e", grade:"11-12", source:"V2-D", concept:"V2 D2.1 Building Models — Quantitative", text:"Use technology to compute confidence intervals and p-values that can be used to assess model parameters (e.g., the slope of a linear regression model)."},
-  {id:"v2d_d22_k2a", grade:"K-2", source:"V2-D", concept:"V2 D2.2 Building Models — Categorical", text:"Articulate simple rules for sorting."},
-  {id:"v2d_d22_k2b", grade:"K-2", source:"V2-D", concept:"V2 D2.2 Building Models — Categorical", text:"Classify objects based on observed similarities."},
-  {id:"v2d_d22_35", grade:"3-5", source:"V2-D", concept:"V2 D2.2 Building Models — Categorical", text:"Predict whether an object belongs to a group based on characteristics."},
-  {id:"v2d_d22_68a", grade:"6-8", source:"V2-D", concept:"V2 D2.2 Building Models — Categorical", text:"Identify relationships between variables and represent them using tables, graphs, or diagrams."},
-  {id:"v2d_d22_68b", grade:"6-8", source:"V2-D", concept:"V2 D2.2 Building Models — Categorical", text:"Use simple models to describe patterns and relationships."},
-  {id:"v2d_d22_68c", grade:"6-8", source:"V2-D", concept:"V2 D2.2 Building Models — Categorical", text:"Test and refine models by comparing predictions to actual values."},
-  {id:"v2d_d22_910a", grade:"9-10", source:"V2-D", concept:"V2 D2.2 Building Models — Categorical", text:"Construct and analyze models to represent relationships in categorical data."},
-  {id:"v2d_d22_910b", grade:"9-10", source:"V2-D", concept:"V2 D2.2 Building Models — Categorical", text:"Use technology to create, test, and refine models."},
-  {id:"v2d_d22_1112a", grade:"11-12", source:"V2-D", concept:"V2 D2.2 Building Models — Categorical", text:"Analyze how characteristics of training data affect model predictions for different subgroups."},
-  {id:"v2d_d22_1112b", grade:"11-12", source:"V2-D", concept:"V2 D2.2 Building Models — Categorical", text:"Evaluate strategies for mitigating training data bias."},
-  {id:"v2d_d23_k2a", grade:"K-2", source:"V2-D", concept:"V2 D2.3 Modeling Using Simulation", text:"Describe characteristics of a population and recognize that variability exists."},
-  {id:"v2d_d23_k2b", grade:"K-2", source:"V2-D", concept:"V2 D2.3 Modeling Using Simulation", text:"Describe events as likely or unlikely."},
-  {id:"v2d_d23_35a", grade:"3-5", source:"V2-D", concept:"V2 D2.3 Modeling Using Simulation", text:"Recognize that a sample may or may not reflect the entire group."},
-  {id:"v2d_d23_35b", grade:"3-5", source:"V2-D", concept:"V2 D2.3 Modeling Using Simulation", text:"Relate the effect of repeated samples to representativeness."},
-  {id:"v2d_d23_68a", grade:"6-8", source:"V2-D", concept:"V2 D2.3 Modeling Using Simulation", text:"Evaluate how sampling methods impact accurate representation of a population."},
-  {id:"v2d_d23_68b", grade:"6-8", source:"V2-D", concept:"V2 D2.3 Modeling Using Simulation", text:"Assess how sample size impacts accuracy of estimates."},
-  {id:"v2d_d23_68c", grade:"6-8", source:"V2-D", concept:"V2 D2.3 Modeling Using Simulation", text:"Identify sources of potential bias and describe how bias may impact results."},
-  {id:"v2d_d23_910a", grade:"9-10", source:"V2-D", concept:"V2 D2.3 Modeling Using Simulation", text:"Use simulations to determine whether results are likely due to something other than random chance."},
-  {id:"v2d_d23_910b", grade:"9-10", source:"V2-D", concept:"V2 D2.3 Modeling Using Simulation", text:"Answer probabilistic questions resulting from simulations."},
-  {id:"v2d_d23_1112a", grade:"11-12", source:"V2-D", concept:"V2 D2.3 Modeling Using Simulation", text:"Use simulation-based inferential methods to draw conclusions from datasets."},
-  {id:"v2d_d23_1112b", grade:"11-12", source:"V2-D", concept:"V2 D2.3 Modeling Using Simulation", text:"Identify why simulation can be used to infer conclusions referencing the Law of Large Numbers."},
-  {id:"v2d_d23_1112c", grade:"11-12", source:"V2-D", concept:"V2 D2.3 Modeling Using Simulation", text:"Estimate confidence intervals and p-values from simulations."},
-  {id:"v2d_d31_k2", grade:"K-2", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Identify whether a pattern applies to another situation."},
-  {id:"v2d_d31_35a", grade:"3-5", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Use a simple model or pattern to predict what might happen in a new situation."},
-  {id:"v2d_d31_35b", grade:"3-5", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Recognize that predictions can be more or less certain depending on similarity to original data."},
-  {id:"v2d_d31_68a", grade:"6-8", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Use models to make predictions."},
-  {id:"v2d_d31_68b", grade:"6-8", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Compare predicted values to actual observed values."},
-  {id:"v2d_d31_68c", grade:"6-8", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Identify factors that make predictions more or less reliable."},
-  {id:"v2d_d31_910a", grade:"9-10", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Generate point predictions and prediction intervals to communicate expected outcomes and plausible ranges."},
-  {id:"v2d_d31_910b", grade:"9-10", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Use digital tools to make predictions from models and visualize prediction uncertainty."},
-  {id:"v2d_d31_910c", grade:"9-10", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Use Expected Value calculations to compare scenarios involving multiple trials."},
-  {id:"v2d_d31_1112a", grade:"11-12", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Construct and interpret prediction intervals for individual observations."},
-  {id:"v2d_d31_1112b", grade:"11-12", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Create and use expected value models to support decision-making."},
-  {id:"v2d_d31_1112c", grade:"11-12", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Evaluate prediction accuracy using appropriate metrics."},
-  {id:"v2d_d31_1112d", grade:"11-12", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Communicate predictions responsibly by stating assumptions, quantifying uncertainty, and acknowledging limitations."},
-  {id:"v2d_d31_1112e", grade:"11-12", source:"V2-D", concept:"V2 D3.1 Making Predictions", text:"Use simulations to build a distribution of possible outcomes, and evaluate results using expected value, confidence intervals, or p-values depending on the question being asked."},
-  {id:"v2d_d32_35", grade:"3-5", source:"V2-D", concept:"V2 D3.2 Causal Relationships", text:"Informally assess whether there is an association between two phenomena in a visualization."},
-  {id:"v2d_d32_68a", grade:"6-8", source:"V2-D", concept:"V2 D3.2 Causal Relationships", text:"Assess simple data to identify potential associations while recognizing that correlation does not imply causation."},
-  {id:"v2d_d32_68b", grade:"6-8", source:"V2-D", concept:"V2 D3.2 Causal Relationships", text:"Identify and categorize types of relationships between numerical variables (independent, dependent, covariate)."},
-  {id:"v2d_d32_910a", grade:"9-10", source:"V2-D", concept:"V2 D3.2 Causal Relationships", text:"Recognize that randomized experiments best establish evidence for causation."},
-  {id:"v2d_d32_910b", grade:"9-10", source:"V2-D", concept:"V2 D3.2 Causal Relationships", text:"Identify spurious correlations and explore other potential causes."},
-  {id:"v2d_d32_1112a", grade:"11-12", source:"V2-D", concept:"V2 D3.2 Causal Relationships", text:"Independently identify examples where two dependent variables are both influenced by a third variable."},
-  {id:"v2d_d32_1112b", grade:"11-12", source:"V2-D", concept:"V2 D3.2 Causal Relationships", text:"Analyze how spurious correlations relate to claims and AI recommendations."},
-  {id:"v2d_d41_35", grade:"3-5", source:"V2-D", concept:"V2 D4.1 Quantifying Model Error", text:"Identify potential sources of natural variability based on knowledge of the data context."},
-  {id:"v2d_d41_68", grade:"6-8", source:"V2-D", concept:"V2 D4.1 Quantifying Model Error", text:"Relate sources of variability to domain-specific phenomena."},
-  {id:"v2d_d41_910a", grade:"9-10", source:"V2-D", concept:"V2 D4.1 Quantifying Model Error", text:"Identify common ways to measure how well a model fits data, such as mean squared error or mean absolute error for quantitative outcomes, or accuracy for classification."},
-  {id:"v2d_d41_910b", grade:"9-10", source:"V2-D", concept:"V2 D4.1 Quantifying Model Error", text:"Consider context and dataset characteristics to determine measurement error."},
-  {id:"v2d_d41_1112a", grade:"11-12", source:"V2-D", concept:"V2 D4.1 Quantifying Model Error", text:"Analyze error patterns to assess model performance using residual plots or confusion matrices."},
-  {id:"v2d_d41_1112b", grade:"11-12", source:"V2-D", concept:"V2 D4.1 Quantifying Model Error", text:"Use insights from error analysis to improve models."},
-  {id:"v2d_d42_k2", grade:"K-2", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Recognize that what we learn from one group might not always be true for other groups."},
-  {id:"v2d_d42_35a", grade:"3-5", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Explain how findings from a small group might or might not apply to a bigger group."},
-  {id:"v2d_d42_35b", grade:"3-5", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Identify reasons why patterns in one dataset might not appear in another."},
-  {id:"v2d_d42_68a", grade:"6-8", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Evaluate whether a sample is representative enough to draw conclusions about a larger population."},
-  {id:"v2d_d42_68b", grade:"6-8", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Identify factors that limit how broadly findings can be applied."},
-  {id:"v2d_d42_68c", grade:"6-8", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Revise assumptions or modeling choices when new data suggests findings don't generalize as expected."},
-  {id:"v2d_d42_910a", grade:"9-10", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Evaluate how sampling methods and study design determine which populations and contexts a model's conclusions can extend to."},
-  {id:"v2d_d42_910b", grade:"9-10", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Identify potential threats to generalizability (selection bias, measurement differences, contextual factors)."},
-  {id:"v2d_d42_910c", grade:"9-10", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Document scope and limitations of conclusions, clearly stating to whom findings apply."},
-  {id:"v2d_d42_1112a", grade:"11-12", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Evaluate whether causal claims from experiments generalize beyond the experimental context."},
-  {id:"v2d_d42_1112b", grade:"11-12", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Evaluate whether a model built on one population or context produces valid conclusions when applied to a different population, setting, or time period."},
-  {id:"v2d_d42_1112c", grade:"11-12", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Design strategies to test whether findings hold in new contexts by applying models to independent datasets or replicating key analyses."},
-  {id:"v2d_d42_1112d", grade:"11-12", source:"V2-D", concept:"V2 D4.2 Model Generalizability", text:"Recognize when findings from one study are insufficient to establish broad claims."},
-  {id:"v2d_d43_k2", grade:"K-2", source:"V2-D", concept:"V2 D4.3 Comparing and Improving Models", text:"Compare two simple sorting rules or predictions to see which works better and explain why."},
-  {id:"v2d_d43_35a", grade:"3-5", source:"V2-D", concept:"V2 D4.3 Comparing and Improving Models", text:"Test whether a pattern or rule works well by checking it against a new subset of the data and revise when it makes mistakes."},
-  {id:"v2d_d43_35b", grade:"3-5", source:"V2-D", concept:"V2 D4.3 Comparing and Improving Models", text:"Compare predictions from two different models applied to the same dataset to determine which is more accurate."},
-  {id:"v2d_d43_68a", grade:"6-8", source:"V2-D", concept:"V2 D4.3 Comparing and Improving Models", text:"Calculate how often a model makes correct predictions (accuracy) and use this to choose between classification models (e.g., kNN, decision trees) built from the same dataset."},
-  {id:"v2d_d43_68b", grade:"6-8", source:"V2-D", concept:"V2 D4.3 Comparing and Improving Models", text:"Test a model on new data that wasn't used to build it."},
-  {id:"v2d_d43_910a", grade:"9-10", source:"V2-D", concept:"V2 D4.3 Comparing and Improving Models", text:"Use multiple error metrics (e.g., precision, recall, F1 score) to evaluate and compare classification models."},
-  {id:"v2d_d43_910b", grade:"9-10", source:"V2-D", concept:"V2 D4.3 Comparing and Improving Models", text:"Apply cross-validation techniques to assess model performance and avoid overfitting."},
-  {id:"v2d_d43_910c", grade:"9-10", source:"V2-D", concept:"V2 D4.3 Comparing and Improving Models", text:"Analyze error metrics to identify patterns in model errors and suggest targeted improvements."},
-  {id:"v2d_d43_910d", grade:"9-10", source:"V2-D", concept:"V2 D4.3 Comparing and Improving Models", text:"Use technology to systematically test model variations and compare performance metrics to select the best approach."},
-  {id:"v2d_d43_1112a", grade:"11-12", source:"V2-D", concept:"V2 D4.3 Comparing and Improving Models", text:"Analyze confusion matrices and diagnostic tools to identify specific weaknesses and implement improvements."},
-  {id:"v2d_d43_1112b", grade:"11-12", source:"V2-D", concept:"V2 D4.3 Comparing and Improving Models", text:"Evaluate the trade-off between model complexity and performance (bias-variance tradeoff)."},
-  {id:"v2d_d43_1112c", grade:"11-12", source:"V2-D", concept:"V2 D4.3 Comparing and Improving Models", text:"Design and execute model comparison frameworks — distinguishing between prediction models (e.g., linear regression, random forests) and classification models (e.g., logistic regression, decision trees) — to select the most appropriate approach for a given context."},
-  {id:"v1_c31_68a", grade:"6-8", source:"V1", concept:"V1 C3.1 Describing Variability", text:"[V1 only] Identify probabilistic processes that simulate various forms of categorical variability, including uniform and normal distributions (e.g., spinner, dice, random draw)."},
-  {id:"v1_c31_68b", grade:"6-8", source:"V1", concept:"V1 C3.1 Describing Variability", text:"[V1 only] Illustrate variability in a dataset by determining how key descriptive features are represented."},
-  {id:"v1_c31_68c", grade:"6-8", source:"V1", concept:"V1 C3.1 Describing Variability", text:"[V1 only] Evaluate how visualizations, models, or predictions account for variation at an appropriate level."},
-  {id:"v1_c31_910", grade:"9-10", source:"V1", concept:"V1 C3.1 Describing Variability", text:"[V1 only] Describe methods (statistical, simulation) to analyze variability in data and connect it to known or hypothesized processes in a specific domain."},
-  {id:"v1_c31_1112", grade:"11-12", source:"V1", concept:"V1 C3.1 Describing Variability", text:"[V1 only] Apply statistical or simulation methods to model variability to explore uncertainty in real-world situations."},
-  {id:"v1_c32_k2", grade:"K-2", source:"V1", concept:"V1 C3.2 Comparing Variability", text:"[V1 only] Describe how two things or groups are different from one another (e.g., more or less, bigger or smaller)."},
-  {id:"v1_c32_35", grade:"3-5", source:"V1", concept:"V1 C3.2 Comparing Variability", text:"[V1 only] Understand how data varies by exploring spread (e.g., range) and comparing qualities (e.g., brightness or temperature)."},
-  {id:"v1_c32_68", grade:"6-8", source:"V1", concept:"V1 C3.2 Comparing Variability", text:"[V1 only] Use visualizations (e.g., box plots) to compare variability across datasets."},
-  {id:"v1_c32_910", grade:"9-10", source:"V1", concept:"V1 C3.2 Comparing Variability", text:"[V1 only] Use simple statistics including mean, median, range, standard deviation, etc. to compare data distributions."},
-  {id:"v1_c32_1112", grade:"11-12", source:"V1", concept:"V1 C3.2 Comparing Variability", text:"[V1 only] Explore variability through statistical methods, such as analyzing residuals or variance in linear models."},
-  {id:"v1_c33_35a", grade:"3-5", source:"V1", concept:"V1 C3.3 Sources of Variability", text:"[V1 only] Identify and explain simple measurement error (e.g., different students get varying results when measuring the same object)."},
-  {id:"v1_c33_35b", grade:"3-5", source:"V1", concept:"V1 C3.3 Sources of Variability", text:"[V1 only] Identify potential sources of natural variability in a given measure based on knowledge of the data context (e.g., plants can be different heights, grow taller over time, grow differently in different areas)."},
-  {id:"v1_c33_68a", grade:"6-8", source:"V1", concept:"V1 C3.3 Sources of Variability", text:"[V1 only] Consider both context and dataset characteristics to determine whether a given data point is reasonable (e.g., meaningful outlier vs. erroneous outlier)."},
-  {id:"v1_c33_68b", grade:"6-8", source:"V1", concept:"V1 C3.3 Sources of Variability", text:"[V1 only] Relate sources of variability to domain-specific phenomena as described in relevant domain standards (e.g., NGSS, Math CCSS, C3 Framework)."},
-  {id:"v1_c33_910a", grade:"9-10", source:"V1", concept:"V1 C3.3 Sources of Variability", text:"[V1 only] Consider variability as a key component of informal inference by questioning whether observed differences are meaningful or not (e.g., phone battery 6 hours one day vs 4 the next — real difference or normal variation?)."},
-  {id:"v1_c33_910b", grade:"9-10", source:"V1", concept:"V1 C3.3 Sources of Variability", text:"[V1 only] Identify categorical options for measuring 'best' fit from data points to provided estimates (e.g., line or curve for a scatterplot, mean for a distribution)."},
-  {id:"v1_c33_910c", grade:"9-10", source:"V1", concept:"V1 C3.3 Sources of Variability", text:"[V1 only] Consider both context and characteristics of a dataset to determine how 'messy' it may be due to measurement error (e.g., faulty sensors, inaccurate measurements)."},
-  {id:"v1_c33_1112a", grade:"11-12", source:"V1", concept:"V1 C3.3 Sources of Variability", text:"[V1 only] Estimate and describe errors between predictions and actual outcomes (e.g., residuals, misclassification rates)."},
-  {id:"v1_c33_1112b", grade:"11-12", source:"V1", concept:"V1 C3.3 Sources of Variability", text:"[V1 only] Analyze error patterns to assess model performance (e.g., residual plot, confusion matrix)."},
-  {id:"v1_c33_1112c", grade:"11-12", source:"V1", concept:"V1 C3.3 Sources of Variability", text:"[V1 only] Use insights from error analysis to improve the model (e.g., add a variable, use a curve; in classification, balance groups or adjust the cutoff)."},
-  {id:"v1_c34_68a", grade:"6-8", source:"V1", concept:"V1 C3.4 Variability in Computational World", text:"[V1 only] Conceptualize how the output of AI models such as LLMs vary along a variety of dimensions."},
-  {id:"v1_c34_68b", grade:"6-8", source:"V1", concept:"V1 C3.4 Variability in Computational World", text:"[V1 only] Determine how labeling happens and how it affects the variability of the output of models (e.g., training set that labels dogs vs. cats, connections to bias)."},
-  {id:"v1_c34_910", grade:"9-10", source:"V1", concept:"V1 C3.4 Variability in Computational World", text:"[V1 only] Acknowledge how variability in the training data for generative AI influences bias in its output (e.g., facial recognition, ownership of DNA data)."},
-  {id:"v1_c34_1112", grade:"11-12", source:"V1", concept:"V1 C3.4 Variability in Computational World", text:"[V1 only] Appreciate that many AI tools are pre-trained with large quantities of data so that inferences can be drawn on smaller sample sizes."},
-  {id:"v1_d11_k2", grade:"K-2", source:"V1", concept:"V1 D1.1 Probabilistic Language", text:"[V1 only] Recognize that some situations are not binary and find appropriate vocabulary (e.g., 'always,' 'sometimes,' 'never')."},
-  {id:"v1_d11_35", grade:"3-5", source:"V1", concept:"V1 D1.1 Probabilistic Language", text:"[V1 only] Formulate a guess or hypothesis and identify informal vocabulary to convey your level of confidence."},
-  {id:"v1_d11_68", grade:"6-8", source:"V1", concept:"V1 D1.1 Probabilistic Language", text:"[V1 only] Express a finding and quantify your confidence in it by stating the degree of certainty regarding the result."},
-  {id:"v1_d11_910", grade:"9-10", source:"V1", concept:"V1 D1.1 Probabilistic Language", text:"[V1 only] Clearly state a result or finding and indicate the level of certainty regarding a formal statistical concept alongside an informal evaluation of the likelihood of the event."},
-  {id:"v1_d14_35", grade:"3-5", source:"V1", concept:"V1 D1.4 Explaining Significance", text:"[V1 only] Describe how 'unusual' a result may be compared to an otherwise expected outcome (e.g., flipping a coin 10 times and getting 10 heads is highly unlikely)."},
-  {id:"v1_d14_68a", grade:"6-8", source:"V1", concept:"V1 D1.4 Explaining Significance", text:"[V1 only] Recognize and describe random chance in a given situation, and explain whether a result is unusual by comparing it to what is expected from random chance."},
-  {id:"v1_d14_68b", grade:"6-8", source:"V1", concept:"V1 D1.4 Explaining Significance", text:"[V1 only] Recognize that a unique result may be considered significant if it falls far from the typical range of outcomes in a visualized distribution of results."},
-  {id:"v1_d14_910a", grade:"9-10", source:"V1", concept:"V1 D1.4 Explaining Significance", text:"[V1 only] Identify situations when distinguishing from random chance is especially important (e.g., medical drug trial, public policy implementation)."},
-  {id:"v1_d14_910b", grade:"9-10", source:"V1", concept:"V1 D1.4 Explaining Significance", text:"[V1 only] Describe probability distributions and give real-world examples of how they can represent different types of random events."},
-  {id:"v1_d14_910c", grade:"9-10", source:"V1", concept:"V1 D1.4 Explaining Significance", text:"[V1 only] Identify and describe a normal distribution as a possible model for random chance that can be used to determine whether a result is statistically significant."},
-  {id:"v1_d14_1112a", grade:"11-12", source:"V1", concept:"V1 D1.4 Explaining Significance", text:"[V1 only] Explain the concept of statistical significance in plain language and its limitations (e.g., inability to address study design flaws, confounding variables, or real-world validity)."},
-  {id:"v1_d14_1112b", grade:"11-12", source:"V1", concept:"V1 D1.4 Explaining Significance", text:"[V1 only] Describe how statistical significance tests are constructed, calculated, and interpreted in the context of chosen probability models."},
-  {id:"v1_d14_1112c", grade:"11-12", source:"V1", concept:"V1 D1.4 Explaining Significance", text:"[V1 only] Differentiate statistical significance, effect size, and statistical power in simple terms with real-world examples."},
-  {id:"v1_d15_k2a", grade:"K-2", source:"V1", concept:"V1 D1.5 Sampling & Simulation", text:"[V1 only] Describe characteristics of a population and recognize that variability exists within any population (e.g., jelly beans in a jar)."},
-  {id:"v1_d15_k2b", grade:"K-2", source:"V1", concept:"V1 D1.5 Sampling & Simulation", text:"[V1 only] Describe events as either likely or unlikely (e.g., pulling a purple jelly bean out of a jar with mostly red jelly beans)."},
-  {id:"v1_d15_35b", grade:"3-5", source:"V1", concept:"V1 D1.5 Sampling & Simulation", text:"[V1 only] Relate the effect of repeated samples to the representativeness of an entire group (e.g., pulling 10 jellybeans 5 times gives a better estimate than one handful)."},
-  {id:"v1_d15_68d", grade:"6-8", source:"V1", concept:"V1 D1.5 Sampling & Simulation", text:"[V1 only] Describe what it means for an event to be likely or unlikely using probability (e.g., probability of 0 is unlikely, 1 is very likely, 1/2 is neither)."},
-  {id:"ah_c11_k2a", grade:"K-2", source:"A+H", concept:"A+H C1.1 Visualizing Single Variables", text:"[A/H] Create visualizations of categorical data where each case is a person or an object (by location, piled up, by color). May be on paper or use actual objects/people."},
-  {id:"ah_c11_k2b", grade:"K-2", source:"A+H", concept:"A+H C1.1 Visualizing Single Variables", text:"[A/H] Arrange numerical data in order along a number line. Cases may be indicated by pictures, icons or the objects themselves."},
-  {id:"ah_c11_35a", grade:"3-5", source:"A+H", concept:"A+H C1.1 Visualizing Single Variables", text:"[A/H] Visualize numerical data as a dot plot on a number line, with identical values piled up."},
-  {id:"ah_c11_35b", grade:"3-5", source:"A+H", concept:"A+H C1.1 Visualizing Single Variables", text:"[A/H] Visualize categorical data so that categories can be easily compared (e.g. with a bar chart in which each case takes up the same amount of space)."},
-  {id:"ah_c11_35c", grade:"3-5", source:"A+H", concept:"A+H C1.1 Visualizing Single Variables", text:"[A/H] Distinguish between a case value plot (each bar = one case, height = value) and a bar chart (each bar = a category, height = frequency of cases in that category)."},
-  {id:"ah_c11_68a", grade:"6-8", source:"A+H", concept:"A+H C1.1 Visualizing Single Variables", text:"[A/H] Visualize numerical data as a box plot, with or without individual cases shown."},
-  {id:"ah_c11_68b", grade:"6-8", source:"A+H", concept:"A+H C1.1 Visualizing Single Variables", text:"[A/H] Visualize numerical data as a histogram with values binned."},
-  {id:"ah_c11_68c", grade:"6-8", source:"A+H", concept:"A+H C1.1 Visualizing Single Variables", text:"[A/H] Understand how different choices of binning impact a visualization."},
-  {id:"ah_c11_68d", grade:"6-8", source:"A+H", concept:"A+H C1.1 Visualizing Single Variables", text:"[A/H] Interpret single variable visualizations found in media (pie graphs, bar graphs, histograms). Identify what variable is being graphed and how it is represented."},
-  {id:"ah_c11_910", grade:"9-10", source:"A+H", concept:"A+H C1.1 Visualizing Single Variables", text:"[A/H] Explore how changes in axis limits and scale change a visualization."},
-  {id:"ah_c11_1112", grade:"11-12", source:"A+H", concept:"A+H C1.1 Visualizing Single Variables", text:"[A/H] Visualize a numerical distribution superimposed with a standard probability distribution, such as the normal distribution."},
-  {id:"ah_c12_k2a", grade:"K-2", source:"A+H", concept:"A+H C1.2 Visualizing Multiple Variables", text:"[A/H] Visualize a case with several variables in a single image (e.g., a stuffed animal has fur color, number of legs, eye color)."},
-  {id:"ah_c12_35a", grade:"3-5", source:"A+H", concept:"A+H C1.2 Visualizing Multiple Variables", text:"[A/H] Create a line plot of numeric data where individual cases are colored by a categorical variable."},
-  {id:"ah_c12_35b", grade:"3-5", source:"A+H", concept:"A+H C1.2 Visualizing Multiple Variables", text:"[A/H] Create time series graphs that visualize changes in a quantitative measure over time, where time intervals are consistent and labeled."},
-  {id:"ah_c12_68a", grade:"6-8", source:"A+H", concept:"A+H C1.2 Visualizing Multiple Variables", text:"[A/H] Create parallel boxplots, histograms, or dotplots to compare a numeric variable across several groups."},
-  {id:"ah_c12_68b", grade:"6-8", source:"A+H", concept:"A+H C1.2 Visualizing Multiple Variables", text:"[A/H] Create two-way tables to visualize associations between two categorical attributes."},
-  {id:"ah_c12_68c", grade:"6-8", source:"A+H", concept:"A+H C1.2 Visualizing Multiple Variables", text:"[A/H] Create scatterplots for pairs of numerical variables and describe whether the relationship appears positive, negative, non-linear or absent."},
-  {id:"ah_c12_910", grade:"9-10", source:"A+H", concept:"A+H C1.2 Visualizing Multiple Variables", text:"[A/H] Visualize two numeric variables with a scatterplot and use color to represent a categorical variable for the points."},
-  {id:"ah_c12_1112a", grade:"11-12", source:"A+H", concept:"A+H C1.2 Visualizing Multiple Variables", text:"[A/H] Make sense of complex multivariable data visualizations that utilize color, size, and 2-3 dimensional space (interpret, not create — e.g. from media)."},
-  {id:"ah_c12_1112b", grade:"11-12", source:"A+H", concept:"A+H C1.2 Visualizing Multiple Variables", text:"[A/H] Use a color scale to create a heatmap from a two-way table to visualize associations."},
-  {id:"ah_c21_k2", grade:"K-2", source:"A+H", concept:"A+H C2.1 Measures — Single Variable", text:"[A/H] Count the number of cases in each category. Identify which category has most/least."},
-  {id:"ah_c21_35a", grade:"3-5", source:"A+H", concept:"A+H C2.1 Measures — Single Variable", text:"[A/H] Identify most frequent values (modes), clumps, gaps and unusual values as characteristics of a distribution."},
-  {id:"ah_c21_35b", grade:"3-5", source:"A+H", concept:"A+H C2.1 Measures — Single Variable", text:"[A/H] Find the median of a numerical distribution and notice how much other values deviate from it."},
-  {id:"ah_c21_68", grade:"6-8", source:"A+H", concept:"A+H C2.1 Measures — Single Variable", text:"[A/H] Compare distributions in terms of variability, informally."},
-  {id:"ah_c21_910", grade:"9-10", source:"A+H", concept:"A+H C2.1 Measures — Single Variable", text:"[A/H] Compare various measures of variability (standard deviation, IQR) in terms of what they indicate and what they hide."},
-  {id:"ah_c21_1112", grade:"11-12", source:"A+H", concept:"A+H C2.1 Measures — Single Variable", text:"[A/H] Compare a data distribution with standard probability distributions to determine which is most similar."},
-  {id:"ah_c22_k2", grade:"K-2", source:"A+H", concept:"A+H C2.2 Measures — Multiple Variables", text:"[A/H] Identify the pattern of change (increasing, decreasing, etc.) of numerical data over discrete time periods."},
-  {id:"ah_c22_35", grade:"3-5", source:"A+H", concept:"A+H C2.2 Measures — Multiple Variables", text:"[A/H] Describe time-series trends and predict how they might continue."},
-  {id:"ah_c22_68", grade:"6-8", source:"A+H", concept:"A+H C2.2 Measures — Multiple Variables", text:"[A/H] Use measures of center and variability in quantitative distributions to compare two or more groups."},
-  {id:"ah_c22_910a", grade:"9-10", source:"A+H", concept:"A+H C2.2 Measures — Multiple Variables", text:"[A/H] Use correlation coefficients to measure the strength of association between two numeric variables."},
-  {id:"ah_c22_910b", grade:"9-10", source:"A+H", concept:"A+H C2.2 Measures — Multiple Variables", text:"[A/H] Develop linear and non-linear models to describe relationships among two numeric variables. Use residuals and residual plots to measure and assess variation from the model."},
-  {id:"ah_c22_910c", grade:"9-10", source:"A+H", concept:"A+H C2.2 Measures — Multiple Variables", text:"[A/H] Use the squared error, correlation, and coefficient of determination to describe variation and model fit for predictions."},
-  {id:"ah_c22_1112a", grade:"11-12", source:"A+H", concept:"A+H C2.2 Measures — Multiple Variables", text:"[A/H] Use frequencies in a two-way table between two categorical variables to find the chance of different events occurring (marginal, conditional, joint, and union)."},
-  {id:"ah_c22_1112b", grade:"11-12", source:"A+H", concept:"A+H C2.2 Measures — Multiple Variables", text:"[A/H] Use simulations (e.g., randomization or permutation tests) to investigate associations between categorical variables and significance of an event."},
-  {id:"ah_c22_1112c", grade:"11-12", source:"A+H", concept:"A+H C2.2 Measures — Multiple Variables", text:"[A/H] Understand examples of Simpson's Paradox, where confounding variables impact the trends between two quantitative variables."},
-  {id:"kt_c11_k2", grade:"K-2", source:"K+T", concept:"K+T C1.1 Describing Single Variable", text:"[K/T] Recognize that not all data is numeric — some data describes categories and cannot be averaged or ordered."},
-  {id:"kt_c11_35a", grade:"3-5", source:"K+T", concept:"K+T C1.1 Describing Single Variable", text:"[K/T] Describe the number of clusters, symmetry, and gaps in distributions."},
-  {id:"kt_c11_35b", grade:"3-5", source:"K+T", concept:"K+T C1.1 Describing Single Variable", text:"[K/T] Recognize that variability in a distribution contributes to uncertainty; the more spread out the data, the less certain we can be about any single predicted value."},
-  {id:"kt_c11_68", grade:"6-8", source:"K+T", concept:"K+T C1.1 Describing Single Variable", text:"[K/T] Identify real-world processes that produce variability (such as rolling dice, drawing from a bag, or measuring natural phenomena) and connect the shape of the resulting distribution to the nature of that process."},
-  {id:"kt_c12_68", grade:"6-8", source:"K+T", concept:"K+T C1.2 Visualizing Single Variable", text:"[K/T] Create scatterplots for pairs of numerical variables and describe whether the relationship appears positive, negative, or absent. (RESTORED from V1 6-8.C.2.3b)"},
-  {id:"kt_c21_35", grade:"3-5", source:"K+T", concept:"K+T C2.1 Investigating Single Variable", text:"[K/T] Describe how data interpretation varies across a wide variety of contexts."},
-  {id:"kt_c21_68", grade:"6-8", source:"K+T", concept:"K+T C2.1 Investigating Single Variable", text:"[K/T] Analyze data interpretations from various disciplinary and community perspectives."},
-  {id:"kt_c22_68", grade:"6-8", source:"K+T", concept:"K+T C2.3 Investigating Multiple Variables", text:"[K/T] Use reasoning about distributions to compare two groups based on quantitative variables."},
-  {id:"kt_simp", grade:"11-12", source:"K+T", concept:"K+T C2.3 Investigating Multiple Variables", text:"[K/T] Review examples of Simpson's Paradox in media and research studies."},
-];
-const GRADE_COLOR = { "K-2":"#E8733A", "3-5":"#1A7A4A", "6-8":"#1B6CA8", "9-10":"#7B3FA0", "11-12":"#C0392B" };
-const SOURCE_COLOR = {"V2-C":"#1B6CA8", "V2-D":"#C0392B", "V1":"#6B5B00", "A+H":"#1A7A4A", "K+T":"#7B3FA0"};
-const SOURCE_LABEL = {"V2-C":"V2-C", "V2-D":"V2-D", "V1":"V1", "A+H":"A+H", "K+T":"K+T"};
+
+const SOURCE_COLOR = {"V2-C":"#1B6CA8","V2-D":"#C0392B","V1":"#6B5B00","A+H":"#1A7A4A","K+T":"#7B3FA0"};
+
+
+const CUSTOM_CONCEPTS = [1,2,3,4,5].map(i => ({
+  id: `custom_${i}`,
+  source: 'CUSTOM',
+  substrand: 'Write-in concept',
+  name: '',
+  desc: '',
+  custom: true,
+}));
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-const placements = {}; // id -> zoneId
+const ALL_CONCEPTS = [...CONCEPTS, ...CUSTOM_CONCEPTS];
+const placements = {};
 let dragId = null;
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function updateProgress() {
   const placed = Object.keys(placements).length;
-  const total = COMPETENCIES.length;
+  const total = ALL_CONCEPTS.length;
   document.getElementById('placed-count').textContent = placed;
   document.getElementById('total-count').textContent = total;
   document.getElementById('pct').textContent = Math.round(placed/total*100) + '%';
 }
 
-function getSearch() { return document.getElementById('search').value.toLowerCase(); }
-function getGrade()  { return document.getElementById('filter-grade').value; }
-function getSource() { return document.getElementById('filter-source').value; }
+function getSearch()  { return document.getElementById('search').value.toLowerCase(); }
+function getSource()  { return document.getElementById('filter-source').value; }
 
 function makeCard(c, inZone) {
   const div = document.createElement('div');
@@ -448,21 +207,47 @@ function makeCard(c, inZone) {
   div.draggable = true;
   div.dataset.id = c.id;
 
-  const gc = GRADE_COLOR[c.grade] || '#888';
-  const sc = SOURCE_COLOR[c.source] || '#888';
-  const sl = SOURCE_LABEL[c.source] || c.source;
+  const sc = c.custom ? '#E8A020' : (SOURCE_COLOR[c.source] || '#888');
+  if (c.custom) {
+    div.classList.add('card-custom');
+    div.draggable = false; // re-enabled once name is entered
+    div.innerHTML = `
+      <div class="card-top">
+        <span class="badge badge-custom">WRITE-IN</span>
+      </div>
+      <input class="card-input" placeholder="Concept name..." value="${c.name}"/>
+      <textarea class="card-textarea" placeholder="Optional description..." rows="2">${c.desc}</textarea>
+      ${inZone ? '<button class="card-return">← Return to queue</button>' : ''}
+    `;
+    const nameInput = div.querySelector('.card-input');
+    const descInput = div.querySelector('.card-textarea');
+    // Update data on input
+    nameInput.addEventListener('input', e => {
+      c.name = e.target.value.trim();
+      c.substrand = c.name ? 'Write-in concept' : 'Write-in concept';
+      div.draggable = !!c.name;
+    });
+    descInput.addEventListener('input', e => { c.desc = e.target.value; });
+    // Stop drag from firing while typing
+    nameInput.addEventListener('mousedown', e => e.stopPropagation());
+    descInput.addEventListener('mousedown', e => e.stopPropagation());
+    nameInput.addEventListener('dragstart', e => e.preventDefault());
+    descInput.addEventListener('dragstart', e => e.preventDefault());
+    // Enable dragging once name filled
+    if (c.name) div.draggable = true;
+  } else {
+    div.innerHTML = `
+      <div class="card-top">
+        <span class="badge" style="background:${sc}">${c.source}</span>
+      </div>
+      <div class="card-substrand">${c.substrand}</div>
+      <div class="card-name">${c.name}</div>
+      <div class="card-desc">${c.desc}</div>
+      ${inZone ? '<button class="card-return">← Return to queue</button>' : ''}
+    `;
+  }
 
-  div.innerHTML = `
-    <div class="card-badges">
-      <span class="badge" style="background:${gc}">${c.grade}</span>
-      <span class="badge" style="background:${sc}">${sl}</span>
-      <span class="card-concept">${c.concept}</span>
-    </div>
-    <div class="card-text">${c.text}</div>
-    ${inZone ? '<button class="card-return">&#8592; Return to queue</button>' : ''}
-  `;
-
-  div.addEventListener('dragstart', e => {
+  div.addEventListener('dragstart', () => {
     dragId = c.id;
     setTimeout(() => div.classList.add('dragging'), 0);
   });
@@ -483,31 +268,33 @@ function makeCard(c, inZone) {
   return div;
 }
 
-// ── QUEUE ────────────────────────────────────────────────────────────────────
+// ── QUEUE ─────────────────────────────────────────────────────────────────────
 function renderQueue() {
   const list = document.getElementById('queue-list');
   list.innerHTML = '';
-  const s = getSearch(), g = getGrade(), src = getSource();
-  const visible = COMPETENCIES.filter(c => {
+  const s = getSearch(), src = getSource();
+
+  const visible = ALL_CONCEPTS.filter(c => {
     if (placements[c.id]) return false;
-    if (s && !c.text.toLowerCase().includes(s) && !c.concept.toLowerCase().includes(s)) return false;
-    if (g && c.grade !== g) return false;
-    if (src && c.source !== src) return false;
+    if (s && !c.name.toLowerCase().includes(s) && !c.desc.toLowerCase().includes(s) && !c.substrand.toLowerCase().includes(s)) return false;
+    if (src && c.source !== src && c.source !== 'CUSTOM') return false;
     return true;
   });
+
   document.getElementById('remaining').textContent = `(${visible.length} remaining)`;
+
   if (!visible.length) {
     const msg = document.createElement('div');
     msg.style.cssText = 'color:#888;font-size:12px;padding:16px;text-align:center';
-    msg.textContent = Object.keys(placements).length === COMPETENCIES.length ? '🎉 All items placed!' : 'No items match filter.';
+    msg.textContent = Object.keys(placements).length === ALL_CONCEPTS.length ? '🎉 All concepts placed!' : 'No concepts match filter.';
     list.appendChild(msg);
     return;
   }
   visible.forEach(c => list.appendChild(makeCard(c, false)));
 }
 
-// ── ZONES ────────────────────────────────────────────────────────────────────
-function makeZone(zoneId, label, desc, color, lightColor, hasBorder) {
+// ── ZONE ──────────────────────────────────────────────────────────────────────
+function makeZone(zoneId, label, desc, color, hasBorder) {
   const div = document.createElement('div');
   div.className = 'zone';
   div.dataset.zone = zoneId;
@@ -517,14 +304,14 @@ function makeZone(zoneId, label, desc, color, lightColor, hasBorder) {
     <div class="zone-label" style="color:${color}">${label}</div>
     ${desc ? `<div class="zone-desc">${desc}</div>` : ''}
     <div class="zone-items"></div>
-    <div class="zone-empty" style="display:none">drag items here</div>
+    <div class="zone-empty">drag concepts here</div>
   `;
 
-  div.addEventListener('dragover', e => { e.preventDefault(); div.classList.add('drag-over'); });
-  div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
+  div.addEventListener('dragover', e => { e.preventDefault(); div.classList.add('over'); });
+  div.addEventListener('dragleave', () => div.classList.remove('over'));
   div.addEventListener('drop', e => {
     e.preventDefault();
-    div.classList.remove('drag-over');
+    div.classList.remove('over');
     if (dragId) {
       placements[dragId] = zoneId;
       updateProgress();
@@ -535,72 +322,73 @@ function makeZone(zoneId, label, desc, color, lightColor, hasBorder) {
   return div;
 }
 
+// ── RENDER ZONES ──────────────────────────────────────────────────────────────
 function renderZones() {
-  // Strand C zones
   const strandEl = document.getElementById('strand-c-zones');
   strandEl.innerHTML = '';
 
-  STRAND_C_TARGET.substrands.forEach(sub => {
+  STRAND_C.substrands.forEach(sub => {
     const block = document.createElement('div');
     block.className = 'substrand-block';
 
-    const itemCount = sub.zones.reduce((a,z) => a + COMPETENCIES.filter(c => placements[c.id] === z.id).length, 0);
+    const count = sub.zones.reduce((a,z) => a + ALL_CONCEPTS.filter(c => placements[c.id] === z.id).length, 0);
     const hdr = document.createElement('div');
     hdr.className = 'substrand-header';
     hdr.style.background = sub.color;
-    hdr.innerHTML = `<span>${sub.label}</span><span style="font-size:11px;font-weight:400;opacity:.8">${itemCount} items</span>`;
+    hdr.innerHTML = `<span>${sub.label}</span><span style="font-size:11px;font-weight:400;opacity:.8">${count} concept${count===1?'':'s'}</span>`;
     block.appendChild(hdr);
 
     const row = document.createElement('div');
     row.className = 'zones-row';
-    row.style.gridTemplateColumns = `repeat(${sub.zones.length}, 1fr)`;
+    row.style.gridTemplateColumns = `repeat(${sub.zones.length},1fr)`;
+
     sub.zones.forEach((zone, zi) => {
-      const zEl = makeZone(zone.id, zone.label, '', sub.color, sub.lightColor, zi < sub.zones.length - 1);
-      const items = COMPETENCIES.filter(c => placements[c.id] === zone.id);
+      const zEl = makeZone(zone.id, zone.label, zone.desc, sub.color, zi < sub.zones.length - 1);
+      const items = ALL_CONCEPTS.filter(c => placements[c.id] === zone.id);
       const itemsEl = zEl.querySelector('.zone-items');
       const emptyEl = zEl.querySelector('.zone-empty');
       items.forEach(c => itemsEl.appendChild(makeCard(c, true)));
       emptyEl.style.display = items.length ? 'none' : 'block';
       row.appendChild(zEl);
     });
+
     block.appendChild(row);
     strandEl.appendChild(block);
   });
 
-  // Other zones
+  // Other buckets
   const otherEl = document.getElementById('other-zones');
   otherEl.innerHTML = '';
-  OTHER_BUCKETS.forEach((b, bi) => {
-    const zEl = makeZone(b.id, b.label, b.desc, b.color, b.lightColor, bi % 3 !== 2);
-    const items = COMPETENCIES.filter(c => placements[c.id] === b.id);
+  OTHER.forEach((b, bi) => {
+    const zEl = makeZone(b.id, b.label, b.desc, b.color, bi % 3 !== 2);
+    zEl.style.minHeight = '80px';
+    const items = ALL_CONCEPTS.filter(c => placements[c.id] === b.id);
     const itemsEl = zEl.querySelector('.zone-items');
     const emptyEl = zEl.querySelector('.zone-empty');
     items.forEach(c => itemsEl.appendChild(makeCard(c, true)));
     emptyEl.style.display = items.length ? 'none' : 'block';
-    zEl.style.minHeight = '80px';
     otherEl.appendChild(zEl);
   });
 }
 
-// ── EXPORT ───────────────────────────────────────────────────────────────────
+// ── EXPORT ────────────────────────────────────────────────────────────────────
 document.getElementById('export-btn').addEventListener('click', () => {
-  const rows = [['Competency ID','Grade','Source','Original Concept','Text','Placed In']];
-  COMPETENCIES.forEach(c => {
-    rows.push([c.id, c.grade, c.source, c.concept, c.text, placements[c.id] || 'UNPLACED']);
+  const rows = [['Concept ID','Source','Original Substrand','Concept Name','Description','Placed In']];
+  ALL_CONCEPTS.forEach(c => {
+    rows.push([c.id, c.source, c.substrand, c.name, c.desc, placements[c.id] || 'UNPLACED']);
   });
-  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'strand_c_sorting.csv';
+  a.download = 'strand_c_concept_sorting.csv';
   a.click();
 });
 
-// ── FILTERS ──────────────────────────────────────────────────────────────────
+// ── FILTERS ───────────────────────────────────────────────────────────────────
 document.getElementById('search').addEventListener('input', renderQueue);
-document.getElementById('filter-grade').addEventListener('change', renderQueue);
 document.getElementById('filter-source').addEventListener('change', renderQueue);
 
-// ── INIT ─────────────────────────────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────────────────────
 updateProgress();
 renderQueue();
 renderZones();
