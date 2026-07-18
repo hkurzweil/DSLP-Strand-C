@@ -60,8 +60,11 @@
     .card-textarea::placeholder{color:#BBAA80}
     .badge-custom{background:#E8A020}
     /* scrollbar */
-    ::-webkit-scrollbar{width:5px}
-    ::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+    #queue-list,#drop-panel{scrollbar-width:auto;scrollbar-color:#94A3B8 #E2E8F0;scrollbar-gutter:stable}
+    #queue-list::-webkit-scrollbar,#drop-panel::-webkit-scrollbar{width:14px}
+    #queue-list::-webkit-scrollbar-track,#drop-panel::-webkit-scrollbar-track{background:#E2E8F0;border-radius:7px}
+    #queue-list::-webkit-scrollbar-thumb,#drop-panel::-webkit-scrollbar-thumb{background:#94A3B8;border:3px solid #E2E8F0;border-radius:7px;min-height:40px}
+    #queue-list::-webkit-scrollbar-thumb:hover,#drop-panel::-webkit-scrollbar-thumb:hover{background:#64748B}
   </style>
 </head>
 <body>
